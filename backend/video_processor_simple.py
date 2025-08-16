@@ -13,6 +13,83 @@ from pathlib import Path
 from youtube_transcript_api import YouTubeTranscriptApi
 
 
+def extract_youtube_transcript(video_id: str) -> List[Dict[str, Any]]:
+    """
+    Extract transcript from YouTube video using youtube_transcript_api
+    
+    Args:
+        video_id (str): YouTube video ID (e.g., 'dQw4w9WgXcQ')
+    
+    Returns:
+        List[Dict[str, Any]]: List of transcript entries with 'text', 'start', 'duration'
+    
+    Example:
+        transcript = extract_youtube_transcript('dQw4w9WgXcQ')
+        for entry in transcript:
+            print(f"[{entry['start']}s] {entry['text']}")
+    """
+    try:
+        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+        return transcript_list
+    except Exception as e:
+        print(f"Error extracting transcript for video {video_id}: {e}")
+        return []
+
+
+def extract_video_id_from_url(youtube_url: str) -> str:
+    """
+    Extract video ID from various YouTube URL formats
+    
+    Args:
+        youtube_url (str): YouTube URL (e.g., 'https://youtube.com/watch?v=dQw4w9WgXcQ')
+    
+    Returns:
+        str: Video ID
+    
+    Example:
+        video_id = extract_video_id_from_url('https://youtube.com/watch?v=dQw4w9WgXcQ')
+        print(video_id)  # Output: 'dQw4w9WgXcQ'
+    """
+    patterns = [
+        r'(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([^&\n?#]+)',
+        r'youtube\.com/watch\?.*v=([^&\n?#]+)'
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, youtube_url)
+        if match:
+            return match.group(1)
+    
+    raise ValueError(f"Could not extract video ID from URL: {youtube_url}")
+
+
+def get_formatted_transcript(video_id: str) -> List[Tuple[str, float, float]]:
+    """
+    Get formatted transcript with (text, start_time, end_time) tuples
+    
+    Args:
+        video_id (str): YouTube video ID
+    
+    Returns:
+        List[Tuple[str, float, float]]: List of (text, start_time, end_time) tuples
+    
+    Example:
+        formatted = get_formatted_transcript('dQw4w9WgXcQ')
+        for text, start, end in formatted:
+            print(f"[{start:.1f}s-{end:.1f}s] {text}")
+    """
+    transcript_list = extract_youtube_transcript(video_id)
+    formatted_transcript = []
+    
+    for entry in transcript_list:
+        text = entry['text']
+        start_time = entry['start']
+        end_time = start_time + entry['duration']
+        formatted_transcript.append((text, start_time, end_time))
+    
+    return formatted_transcript
+
+
 class VideoProcessor:
     def __init__(self, job_id: str, storage_dir: str = "storage/videos"):
         self.job_id = job_id
@@ -70,7 +147,6 @@ class VideoProcessor:
     async def _download_youtube_video(self, youtube_url: str, output_path: str):
         """Download YouTube video"""
         def download():
-            print("🔍 Starting cookie detection...")
             # Check if cookies file exists in multiple locations
             import os
             possible_cookie_paths = [
@@ -105,8 +181,6 @@ class VideoProcessor:
                 except Exception as e:
                     print(f"❌ Error reading cookies file: {e}")
                     cookies_path = None
-            
-            print(f"🎯 Final cookies_path: {cookies_path}")
             
             ydl_opts = {
                 'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
