@@ -170,6 +170,20 @@ class VideoProcessor:
                 print(f"📂 Files in current directory: {os.listdir('.')}")
                 if os.path.exists('..'):
                     print(f"📂 Files in parent directory: {os.listdir('..')}")
+                
+                # Try to create a basic cookies file for testing
+                print(f"🔧 Attempting to create basic cookies file...")
+                try:
+                    basic_cookies = """# Netscape HTTP Cookie File
+# This is a basic cookies file for testing
+.youtube.com	TRUE	/	FALSE	1735689600	VISITOR_INFO1_LIVE	test_value
+.youtube.com	TRUE	/	FALSE	1735689600	LOGIN_INFO	test_login_info"""
+                    with open('cookies.txt', 'w') as f:
+                        f.write(basic_cookies)
+                    cookies_path = 'cookies.txt'
+                    print(f"✅ Created basic cookies file for testing")
+                except Exception as e:
+                    print(f"❌ Failed to create cookies file: {e}")
             else:
                 # Check cookies file content
                 try:
@@ -207,6 +221,11 @@ class VideoProcessor:
                 # Verbose output for debugging
                 'verbose': True
             }
+            
+            print(f"🔧 yt-dlp options: cookiefile={cookies_path}")
+            print(f"🔧 Cookies file exists: {os.path.exists(cookies_path) if cookies_path else False}")
+            if cookies_path and os.path.exists(cookies_path):
+                print(f"🔧 Cookies file size: {os.path.getsize(cookies_path)} bytes")
             
             try:
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
