@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import asyncio
@@ -43,6 +44,19 @@ app.add_middleware(
 
 # Initialize job manager
 job_manager = JobManager()
+
+# Mount static files for frontend
+frontend_path = Path("../frontend")
+if not frontend_path.exists():
+    frontend_path = Path("./frontend")
+if not frontend_path.exists():
+    frontend_path = Path("/app/frontend")
+
+if frontend_path.exists():
+    app.mount("/static", StaticFiles(directory=str(frontend_path / "assets")), name="static")
+    print(f"✅ Frontend static files mounted from: {frontend_path}")
+else:
+    print(f"❌ Frontend directory not found. Tried: {frontend_path}")
 
 # WebSocket connection manager
 class ConnectionManager:
@@ -98,7 +112,21 @@ class JobStatus(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "ClipWave AI Backend is running"}
+    # Try to serve the frontend index.html
+    frontend_paths = [
+        Path("../frontend/index.html"),
+        Path("./frontend/index.html"),
+        Path("/app/frontend/index.html")
+    ]
+    
+    for frontend_path in frontend_paths:
+        if frontend_path.exists():
+            with open(frontend_path, 'r') as f:
+                html_content = f.read()
+            return HTMLResponse(content=html_content)
+    
+    # Fallback to JSON response if frontend not found
+    return {"message": "ClipWave AI Backend is running", "frontend": "not found"}
 
 @app.post("/api/jobs", response_model=JobResponse)
 async def create_job(request: VideoRequest, background_tasks: BackgroundTasks):

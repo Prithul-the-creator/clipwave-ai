@@ -23,7 +23,6 @@ FROM python:3.12-slim
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     git \
-    nginx \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -48,52 +47,8 @@ COPY --from=frontend-builder /app/dist ./frontend
 # Create storage directories
 RUN mkdir -p backend/storage/videos
 
-# Create nginx config
-RUN echo 'server { \
-    listen 80; \
-    server_name _; \
-    \
-    # Serve frontend static files \
-    location / { \
-        root /app/frontend; \
-        try_files $uri $uri/ /index.html; \
-    } \
-    \
-    # Proxy API requests to backend \
-    location /api/ { \
-        proxy_pass http://localhost:8000/; \
-        proxy_set_header Host $host; \
-        proxy_set_header X-Real-IP $remote_addr; \
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto $scheme; \
-    } \
-    \
-    # Proxy WebSocket connections \
-    location /ws/ { \
-        proxy_pass http://localhost:8000/ws/; \
-        proxy_http_version 1.1; \
-        proxy_set_header Upgrade $http_upgrade; \
-        proxy_set_header Connection "upgrade"; \
-        proxy_set_header Host $host; \
-        proxy_set_header X-Real-IP $remote_addr; \
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto $scheme; \
-    } \
-}' > /etc/nginx/sites-available/default
-
-# Create startup script
-RUN echo '#!/bin/bash \n\
-# Start backend in background \n\
-cd /app && python railway_start.py & \n\
-\n\
-# Wait a moment for backend to start \n\
-sleep 10 \n\
-\n\
-# Start nginx \n\
-nginx -g "daemon off;"' > /app/start.sh && chmod +x /app/start.sh
-
 # Expose port
-EXPOSE 80
+EXPOSE 8000
 
 # Start the application
-CMD ["/app/start.sh"]
+CMD ["python", "railway_start.py"]
