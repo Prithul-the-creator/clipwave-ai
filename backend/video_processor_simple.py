@@ -29,6 +29,7 @@ def extract_youtube_transcript(video_id: str) -> List[Dict[str, Any]]:
             print(f"[{entry['start']}s] {entry['text']}")
     """
     try:
+        from youtube_transcript_api import YouTubeTranscriptApi
         transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
         return transcript_list
     except Exception as e:
@@ -244,6 +245,7 @@ class VideoProcessor:
         """Get transcript using YouTube Transcript API"""
         def get_transcript():
             try:
+                from youtube_transcript_api import YouTubeTranscriptApi
                 transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
                 # Convert to our format: (text, start_time, end_time)
                 formatted_transcript = []
