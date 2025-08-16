@@ -195,6 +195,16 @@ model = whisper.load_model("base")  # or "small", "medium", "large"
    - Some videos may be restricted or unavailable
    - Check the YouTube URL is valid and accessible
 
+3. **YouTube Authentication Required**
+   - YouTube may require authentication for some videos
+   - **Solution**: Add your YouTube cookies to `cookies.txt`
+   - **How to get cookies**:
+     1. Install "Get cookies.txt" extension for Chrome/Firefox
+     2. Go to youtube.com and log in
+     3. Export cookies to `cookies.txt`
+     4. Replace the template in the file with your actual cookies
+     5. Redeploy to Railway
+
 3. **Memory Issues**
    - Large videos may require more RAM
    - Consider reducing video quality or using shorter videos

@@ -66,10 +66,43 @@ class VideoProcessor:
             ydl_opts = {
                 'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
                 'outtmpl': output_path,
-                'merge_output_format': 'mp4'
+                'merge_output_format': 'mp4',
+                # Add cookie handling
+                'cookiesfrombrowser': ('chrome',),  # Try to get cookies from Chrome
+                # Alternative cookie sources
+                'cookiefile': 'cookies.txt',  # If you have a cookies.txt file
+                # Add user agent to avoid bot detection
+                'http_headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                },
+                # Retry options
+                'retries': 3,
+                'fragment_retries': 3,
+                # Skip age-restricted content if possible
+                'age_limit': 18,
+                # Verbose output for debugging
+                'verbose': True
             }
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([youtube_url])
+            
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([youtube_url])
+            except Exception as e:
+                print(f"Download failed with cookies: {e}")
+                # Fallback: try without cookies
+                ydl_opts_fallback = {
+                    'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
+                    'outtmpl': output_path,
+                    'merge_output_format': 'mp4',
+                    'http_headers': {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    },
+                    'retries': 3,
+                    'fragment_retries': 3,
+                    'verbose': True
+                }
+                with yt_dlp.YoutubeDL(ydl_opts_fallback) as ydl:
+                    ydl.download([youtube_url])
         
         # Run download in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
