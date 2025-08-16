@@ -73,12 +73,20 @@ class VideoProcessor:
             raise e
     
     async def _download_youtube_video(self, youtube_url: str, output_path: str):
-        """Download YouTube video"""
+        """Download YouTube video with enhanced authentication handling"""
         def download():
             ydl_opts = {
                 'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',  # Limit to 720p for faster processing
                 'outtmpl': output_path,
-                'merge_output_format': 'mp4'
+                'merge_output_format': 'mp4',
+                'sleep_interval': 2,  # Add delay to avoid rate limiting
+                'max_sleep_interval': 5,
+                'retries': 3,  # Retry failed downloads
+                'fragment_retries': 3,
+                'ignoreerrors': False,
+                'no_warnings': False,
+                'quiet': False,
+                'verbose': True
             }
             
             # Add cookies if available
@@ -86,11 +94,40 @@ class VideoProcessor:
             if cookies_file.exists():
                 ydl_opts['cookiefile'] = str(cookies_file)
                 print(f"Using cookies from {cookies_file}", flush=True)
+                
+                # Add additional extractor args for better compatibility
+                ydl_opts['extractor_args'] = {
+                    'youtube': {
+                        'player_skip': ['webpage', 'configs'],
+                        'player_client': ['android', 'web']
+                    }
+                }
             else:
                 print("No cookies.txt found, downloading without authentication", flush=True)
+                # Use mweb client as fallback for better compatibility
+                ydl_opts['extractor_args'] = {
+                    'youtube': {
+                        'player_client': ['mweb', 'web']
+                    }
+                }
             
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([youtube_url])
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([youtube_url])
+            except Exception as e:
+                print(f"Download failed with error: {str(e)}", flush=True)
+                # Try without cookies as fallback
+                if 'cookiefile' in ydl_opts:
+                    print("Retrying without cookies...", flush=True)
+                    del ydl_opts['cookiefile']
+                    del ydl_opts['extractor_args']
+                    ydl_opts['extractor_args'] = {
+                        'youtube': {
+                            'player_client': ['mweb', 'web']
+                        }
+                    }
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([youtube_url])
         
         # Run download in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
