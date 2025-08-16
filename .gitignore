@@ -41,3 +41,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Cookie files (contain sensitive data)
+youtube_cookies.txt

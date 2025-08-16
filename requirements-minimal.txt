@@ -9,3 +9,5 @@ pydantic
 aiofiles
 openai-whisper
 moviepy
+torch
+torchaudio

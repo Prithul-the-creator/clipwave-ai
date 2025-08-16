@@ -17,10 +17,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-try:
-    from video_processor import VideoProcessor
-except ImportError:
-    from video_processor_simple import VideoProcessor
+from video_processor import VideoProcessor
 from job_manager import JobManager
 
 app = FastAPI(title="ClipWave AI Backend", version="1.0.0")
