@@ -1,5 +1,4 @@
-// For Railway deployment, use relative URLs since frontend and backend are served from same domain
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export interface VideoRequest {
   youtube_url: string;
@@ -113,18 +112,10 @@ class ApiClient {
   }
 
   getWebSocketUrl(jobId: string): string {
-    // For Railway deployment, use relative WebSocket URL
-    const wsUrl = import.meta.env.VITE_API_URL || '';
-    if (wsUrl && !wsUrl.startsWith('/')) {
-      // If VITE_API_URL is set to external URL, use it
-      const wsProtocol = wsUrl.startsWith('https') ? 'wss' : 'ws';
-      const wsHost = wsUrl.replace(/^https?:\/\//, '');
-      return `${wsProtocol}://${wsHost}/ws/${jobId}`;
-    } else {
-      // Use relative URL for same-domain deployment
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      return `${protocol}//${window.location.host}/ws/${jobId}`;
-    }
+    const wsUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const wsProtocol = wsUrl.startsWith('https') ? 'wss' : 'ws';
+    const wsHost = wsUrl.replace(/^https?:\/\//, '');
+    return `${wsProtocol}://${wsHost}/ws/${jobId}`;
   }
 }
 

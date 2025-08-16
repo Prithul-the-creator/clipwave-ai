@@ -1354,5 +1354,130 @@
       }
     ],
     "error": null
+  },
+  "5915136f-0438-4e95-9aad-62acd13f48ce": {
+    "id": "5915136f-0438-4e95-9aad-62acd13f48ce",
+    "youtube_url": "https://www.youtube.com/watch?v=s9fokUqJ76A&ab_channel=NeetCode",
+    "instructions": "return the part about recursion",
+    "user_id": "prithulbaveja@gmail.com",
+    "status": "completed",
+    "progress": 100,
+    "current_step": "Completed",
+    "created_at": "2025-08-16T14:01:43.567621",
+    "updated_at": "2025-08-16T14:03:12.409571",
+    "video_path": "storage/videos/5915136f-0438-4e95-9aad-62acd13f48ce.mp4",
+    "video_url": "/api/videos/5915136f-0438-4e95-9aad-62acd13f48ce",
+    "clips": [
+      {
+        "id": "1",
+        "title": "Clip 1",
+        "duration": "7.6s",
+        "timeframe": "619.2s - 626.7s",
+        "start": 619.16,
+        "end": 626.7199999999999
+      },
+      {
+        "id": "2",
+        "title": "Clip 2",
+        "duration": "34.6s",
+        "timeframe": "628.3s - 662.9s",
+        "start": 628.28,
+        "end": 662.92
+      },
+      {
+        "id": "3",
+        "title": "Clip 3",
+        "duration": "50.4s",
+        "timeframe": "672.0s - 722.4s",
+        "start": 671.96,
+        "end": 722.3599999999999
+      },
+      {
+        "id": "4",
+        "title": "Clip 4",
+        "duration": "48.4s",
+        "timeframe": "726.8s - 775.2s",
+        "start": 726.76,
+        "end": 775.16
+      },
+      {
+        "id": "5",
+        "title": "Clip 5",
+        "duration": "32.4s",
+        "timeframe": "779.9s - 812.3s",
+        "start": 779.88,
+        "end": 812.32
+      }
+    ],
+    "error": null
+  },
+  "8cfb169b-b657-4b58-9c99-e96ca2b06cd4": {
+    "id": "8cfb169b-b657-4b58-9c99-e96ca2b06cd4",
+    "youtube_url": "https://www.youtube.com/watch?v=s9fokUqJ76A&ab_channel=NeetCode",
+    "instructions": "return the part about recursion",
+    "user_id": "prithulbaveja@gmail.com",
+    "status": "failed",
+    "progress": 25,
+    "current_step": "Failed",
+    "created_at": "2025-08-16T14:35:49.808145",
+    "updated_at": "2025-08-16T14:35:53.551108",
+    "video_path": null,
+    "video_url": null,
+    "clips": [],
+    "error": "Could not extract video ID from URL"
+  },
+  "fed81cfc-bbea-4b68-bf55-f329aaa2b725": {
+    "id": "fed81cfc-bbea-4b68-bf55-f329aaa2b725",
+    "youtube_url": "https://www.youtube.com/watch?v=s9fokUqJ76A&ab_channel=NeetCode",
+    "instructions": "a",
+    "user_id": "prithulbaveja@gmail.com",
+    "status": "failed",
+    "progress": 25,
+    "current_step": "Failed",
+    "created_at": "2025-08-16T14:36:02.086676",
+    "updated_at": "2025-08-16T14:36:05.352936",
+    "video_path": null,
+    "video_url": null,
+    "clips": [],
+    "error": "Could not extract video ID from URL"
+  },
+  "9cd33152-09ae-42c0-9f78-13db10ba41e6": {
+    "id": "9cd33152-09ae-42c0-9f78-13db10ba41e6",
+    "youtube_url": "https://www.youtube.com/watch?v=s9fokUqJ76A&ab_channel=NeetCode",
+    "instructions": "recursion",
+    "user_id": "prithulbaveja@gmail.com",
+    "status": "completed",
+    "progress": 100,
+    "current_step": "Completed",
+    "created_at": "2025-08-16T14:38:00.269296",
+    "updated_at": "2025-08-16T14:38:19.730678",
+    "video_path": "storage/videos/9cd33152-09ae-42c0-9f78-13db10ba41e6.mp4",
+    "video_url": "/api/videos/9cd33152-09ae-42c0-9f78-13db10ba41e6",
+    "clips": [
+      {
+        "id": "1",
+        "title": "Clip 1",
+        "duration": "221.3s",
+        "timeframe": "594.6s - 815.8s",
+        "start": 594.56,
+        "end": 815.8389999999999
+      }
+    ],
+    "error": null
+  },
+  "1691c2b1-62f6-47d0-82ef-c5ca5f05d8bc": {
+    "id": "1691c2b1-62f6-47d0-82ef-c5ca5f05d8bc",
+    "youtube_url": "https://www.youtube.com/watch?v=Wf7Pwie34q0&ab_channel=ScruFaceJean",
+    "instructions": "return the parts about drake",
+    "user_id": "prithulbaveja@gmail.com",
+    "status": "failed",
+    "progress": 50,
+    "current_step": "Failed",
+    "created_at": "2025-08-16T14:40:52.792284",
+    "updated_at": "2025-08-16T14:41:07.217283",
+    "video_path": null,
+    "video_url": null,
+    "clips": [],
+    "error": "Error code: 400 - {'error': {'message': \"This model's maximum context length is 8192 tokens. However, your messages resulted in 8677 tokens. Please reduce the length of the messages.\", 'type': 'invalid_request_error', 'param': 'messages', 'code': 'context_length_exceeded'}}"
   }
 }

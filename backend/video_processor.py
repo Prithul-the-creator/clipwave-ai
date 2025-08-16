@@ -1,5 +1,4 @@
 import yt_dlp
-import whisper
 import tempfile
 import os
 import re
@@ -12,6 +11,7 @@ from typing import Callable, Optional, Dict, Any, List, Tuple
 import threading
 import time
 from pathlib import Path
+from youtube_transcript_api import YouTubeTranscriptApi
 
 
 class VideoProcessor:
@@ -44,10 +44,10 @@ class VideoProcessor:
             await self._download_youtube_video(youtube_url, str(self.video_path))
             update_progress(25, "Video downloaded successfully")
             
-            # Step 2: Transcribe video (25-50%)
-            update_progress(25, "Transcribing video with AI...")
-            transcript = await self._transcribe_video(str(self.video_path))
-            update_progress(50, "Transcription completed")
+            # Step 2: Get transcript (25-50%)
+            update_progress(25, "Getting video transcript...")
+            transcript = await self._transcribe_video(youtube_url)
+            update_progress(50, "Transcript retrieved")
             
             # Step 3: Process with GPT and identify clips (50-75%)
             update_progress(50, "Analyzing content and identifying clips...")
@@ -87,33 +87,54 @@ class VideoProcessor:
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, download)
     
-    async def _transcribe_video(self, video_path: str) -> List[Tuple[str, float, float]]:
-        """Transcribe video using Whisper"""
-        def transcribe():
+    async def _transcribe_video(self, youtube_url: str) -> List[Tuple[str, float, float]]:
+        """Get transcript using YouTube Transcript API"""
+        def get_transcript():
             start_time = time.time()
-            try:
-                print("Starting Whisper transcription...", flush=True)
-                model = whisper.load_model("base")
-                print("Model loaded.", flush=True)
-                result = model.transcribe(video_path, language="en")
-                print("Whisper transcription complete.", flush=True)
-                ...
-            except Exception as e:
-                print(f"Transcription failed: {e}", flush=True)
-                raise
+            print("Getting YouTube transcript...", flush=True)
             
+            # Extract video ID from URL
+            video_id = self._extract_video_id(youtube_url)
+            if not video_id:
+                raise ValueError("Could not extract video ID from URL")
+            
+            # Get transcript
+            api = YouTubeTranscriptApi()
+            transcript_list = api.fetch(video_id, languages=['en'])
+            print("YouTube transcript retrieved successfully.", flush=True)
+            
+            # Convert to our format
             transcript = []
-            for segment in result['segments']:
-                transcript.append((segment['text'], segment['start'], segment['end']))
+            for segment in transcript_list:
+                text = segment.text
+                start_time_sec = segment.start
+                end_time_sec = segment.start + segment.duration
+                transcript.append((text, start_time_sec, end_time_sec))
             
             end_time = time.time()
-            print("transcription took" + str(end_time - start_time) + "seconds")
+            print(f"Transcript retrieval took {end_time - start_time:.2f} seconds")
             print(transcript)
             return transcript
         
-        # Run transcription in thread pool
+        # Run transcript retrieval in thread pool
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, transcribe)
+        return await loop.run_in_executor(None, get_transcript)
+    
+    def _extract_video_id(self, youtube_url: str) -> Optional[str]:
+        """Extract video ID from YouTube URL"""
+        patterns = [
+            r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})',
+            r'youtube\.com\/embed\/([a-zA-Z0-9_-]{11})',
+            r'youtube\.com\/v\/([a-zA-Z0-9_-]{11})'
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, youtube_url)
+            if match:
+                return match.group(1)
+        return None
+    
+
     
     async def _identify_clips(self, transcript: List[Tuple[str, float, float]], instructions: str) -> List[Dict[str, float]]:
         """Use GPT to identify relevant clips"""

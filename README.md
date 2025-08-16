@@ -1,6 +1,6 @@
 # ClipWave AI - YouTube Video Clipping Platform
 
-A full-stack application that automatically clips YouTube videos based on AI-powered content analysis. Users can submit YouTube URLs with custom instructions, and the system will generate engaging clips using GPT-4 and Whisper AI.
+A full-stack application that automatically clips YouTube videos based on AI-powered content analysis. Users can submit YouTube URLs with custom instructions, and the system will generate engaging clips using GPT-4 and YouTube Transcript API.
 
 ## Features
 
@@ -18,7 +18,7 @@ A full-stack application that automatically clips YouTube videos based on AI-pow
 ### Backend
 - **FastAPI**: High-performance Python web framework
 - **yt-dlp**: YouTube video downloading
-- **OpenAI Whisper**: Speech-to-text transcription
+- **YouTube Transcript API**: Fast transcript retrieval
 - **OpenAI GPT-4**: Content analysis and clip identification
 - **MoviePy**: Video processing and editing
 - **WebSockets**: Real-time progress updates
@@ -98,31 +98,6 @@ Run both backend and frontend with a single command:
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 
-## 🍪 YouTube Cookies Setup (Production)
-
-For production deployment, cookies are managed via environment variables for security and flexibility:
-
-### **Option 1: Railway Environment Variables (Recommended)**
-1. **Export your cookies** using "Get cookies.txt" browser extension
-2. **Run the setup script**:
-   ```bash
-   python setup_railway_cookies.py
-   ```
-3. **Copy the output** to Railway Variables:
-   - Go to Railway Dashboard → Variables
-   - Add: `YOUTUBE_COOKIES` = [paste cookies content]
-4. **Deploy** - cookies will be automatically used!
-
-### **Option 2: Local Development**
-- Place `cookies.txt` in the project root
-- The application will use it automatically
-
-### **Why Environment Variables?**
-- ✅ **Secure**: No sensitive data in code or Docker images
-- ✅ **Flexible**: Update cookies without rebuilding
-- ✅ **Dynamic**: Can be changed anytime
-- ✅ **Clean**: No file copying issues
-
 ## 🚀 Deployment
 
 ### Quick Deploy to Railway (Recommended)
@@ -154,11 +129,13 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions on:
 
 1. **Submit a YouTube URL**: Enter a YouTube video URL and optional instructions
 2. **Video Download**: The system downloads the video (limited to 720p for faster processing)
-3. **AI Transcription**: Whisper AI transcribes the video content
+3. **Transcript Retrieval**: YouTube Transcript API gets the video transcript (much faster than AI transcription)
 4. **Content Analysis**: GPT-4 analyzes the transcript and identifies engaging moments
 5. **Video Clipping**: MoviePy creates clips based on the identified timestamps
 6. **Real-time Updates**: Progress is tracked and displayed in real-time
 7. **Download**: Users can preview and download the generated clips
+
+**Note**: The system uses YouTube's official transcript data for maximum accuracy and speed.
 
 ## API Endpoints
 
@@ -202,11 +179,7 @@ Change the GPT model in `backend/video_processor.py`:
 model="gpt-4o"  # or "gpt-3.5-turbo"
 ```
 
-### Whisper Model
-Modify the Whisper model in `backend/video_processor.py`:
-```python
-model = whisper.load_model("base")  # or "small", "medium", "large"
-```
+
 
 ## Troubleshooting
 
@@ -219,16 +192,6 @@ model = whisper.load_model("base")  # or "small", "medium", "large"
 2. **Video Download Failures**
    - Some videos may be restricted or unavailable
    - Check the YouTube URL is valid and accessible
-
-3. **YouTube Authentication Required**
-   - YouTube may require authentication for some videos
-   - **Solution**: Add your YouTube cookies to `cookies.txt`
-   - **How to get cookies**:
-     1. Install "Get cookies.txt" extension for Chrome/Firefox
-     2. Go to youtube.com and log in
-     3. Export cookies to `cookies.txt`
-     4. Replace the template in the file with your actual cookies
-     5. Redeploy to Railway
 
 3. **Memory Issues**
    - Large videos may require more RAM
@@ -263,4 +226,3 @@ For issues and questions:
 - Check the troubleshooting section
 - Review the API documentation at http://localhost:8000/docs
 - Open an issue on GitHub
-# Deployment trigger - Sat Aug 16 01:37:16 EDT 2025
