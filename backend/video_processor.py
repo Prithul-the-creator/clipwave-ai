@@ -80,6 +80,15 @@ class VideoProcessor:
                 'outtmpl': output_path,
                 'merge_output_format': 'mp4'
             }
+            
+            # Add cookies if available
+            cookies_file = Path("cookies.txt")
+            if cookies_file.exists():
+                ydl_opts['cookiefile'] = str(cookies_file)
+                print(f"Using cookies from {cookies_file}", flush=True)
+            else:
+                print("No cookies.txt found, downloading without authentication", flush=True)
+            
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([youtube_url])
         

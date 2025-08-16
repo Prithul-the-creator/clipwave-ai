@@ -1479,5 +1479,52 @@
     "video_url": null,
     "clips": [],
     "error": "Error code: 400 - {'error': {'message': \"This model's maximum context length is 8192 tokens. However, your messages resulted in 8677 tokens. Please reduce the length of the messages.\", 'type': 'invalid_request_error', 'param': 'messages', 'code': 'context_length_exceeded'}}"
+  },
+  "3734a4ff-6d26-484f-89b3-dbc820f18961": {
+    "id": "3734a4ff-6d26-484f-89b3-dbc820f18961",
+    "youtube_url": "https://www.youtube.com/shorts/7YkacOV-fPU",
+    "instructions": "test",
+    "user_id": "test@example.com",
+    "status": "failed",
+    "progress": 0,
+    "current_step": "Error: No valid timestamp list found in GPT response",
+    "created_at": "2025-08-16T15:36:54.685388",
+    "updated_at": "2025-08-16T15:37:00.453058",
+    "video_path": null,
+    "video_url": null,
+    "clips": [],
+    "error": "No valid timestamp list found in GPT response"
+  },
+  "3371a08e-390c-4da6-be78-3a3182cb6cef": {
+    "id": "3371a08e-390c-4da6-be78-3a3182cb6cef",
+    "youtube_url": "https://www.youtube.com/shorts/7YkacOV-fPU",
+    "instructions": "Create a short clip about the grapes",
+    "user_id": "test@example.com",
+    "status": "completed",
+    "progress": 100,
+    "current_step": "Video processing completed",
+    "created_at": "2025-08-16T15:37:58.112928",
+    "updated_at": "2025-08-16T15:38:07.125616",
+    "video_path": "storage/videos/3371a08e-390c-4da6-be78-3a3182cb6cef.mp4",
+    "video_url": null,
+    "clips": [
+      {
+        "id": "1",
+        "title": "Clip 1",
+        "duration": "14.5s",
+        "timeframe": "0.0s - 14.6s",
+        "start": 0.04,
+        "end": 14.559
+      },
+      {
+        "id": "2",
+        "title": "Clip 2",
+        "duration": "8.4s",
+        "timeframe": "17.3s - 25.6s",
+        "start": 17.279,
+        "end": 25.64
+      }
+    ],
+    "error": null
   }
 }
