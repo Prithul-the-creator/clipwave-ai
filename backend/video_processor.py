@@ -103,6 +103,13 @@ class VideoProcessor:
             print(f"📁 Current directory: {os.getcwd()}")
             print(f"📂 Files in current directory: {os.listdir('.')}")
             
+            # Also check if we're in a Docker container
+            if os.path.exists('/app'):
+                print(f"🐳 Docker container detected")
+                print(f"📂 Files in /app directory: {os.listdir('/app')}")
+                if os.path.exists('/app/backend'):
+                    print(f"📂 Files in /app/backend directory: {os.listdir('/app/backend')}")
+            
             cookies_path = None
             for path in possible_cookie_paths:
                 print(f"🔍 Checking: {path}")
@@ -160,12 +167,19 @@ class VideoProcessor:
             # Approach 1: Use cookies file if available
             if cookies_path:
                 cookie_approaches.append(('cookiefile', cookies_path))
+                print(f"🍪 Will try cookies file: {cookies_path}")
             
             # Approach 2: Try to get cookies from browser (if available)
             cookie_approaches.append(('cookiesfrombrowser', ('chrome',)))
+            print("🍪 Will try Chrome browser cookies")
             
             # Approach 3: Try Firefox cookies
             cookie_approaches.append(('cookiesfrombrowser', ('firefox',)))
+            print("🍪 Will try Firefox browser cookies")
+            
+            # Approach 4: Try without any cookies (simple approach)
+            cookie_approaches.append(('no_cookies', None))
+            print("🍪 Will try without cookies")
             
             # Add cookies file if available
             if cookies_path:
@@ -194,9 +208,14 @@ class VideoProcessor:
                 try:
                     # Create a copy of options for this attempt
                     current_opts = ydl_opts.copy()
-                    current_opts[cookie_type] = cookie_value
                     
-                    print(f"🔄 Attempt {i+1}: Using {cookie_type} = {cookie_value}")
+                    if cookie_type == 'no_cookies':
+                        # Don't add any cookie options
+                        print(f"🔄 Attempt {i+1}: Using no cookies")
+                    else:
+                        current_opts[cookie_type] = cookie_value
+                        print(f"🔄 Attempt {i+1}: Using {cookie_type} = {cookie_value}")
+                    
                     print(f"🔧 yt-dlp options: {current_opts}")
                     
                     with yt_dlp.YoutubeDL(current_opts) as ydl:
@@ -207,7 +226,7 @@ class VideoProcessor:
                     break
                     
                 except Exception as e:
-                    print(f"❌ Attempt {i+1} failed with {cookie_type}: {e}")
+                    print(f"❌ Attempt {i+1} failed with {cookie_type}: {str(e)[:200]}...")
                     continue
             
             # If all cookie approaches failed, try without cookies
@@ -224,9 +243,13 @@ class VideoProcessor:
                     'fragment_retries': 3,
                     'verbose': True
                 }
-                with yt_dlp.YoutubeDL(ydl_opts_fallback) as ydl:
-                    ydl.download([youtube_url])
-                print("✅ Download completed without cookies (final fallback)")
+                try:
+                    with yt_dlp.YoutubeDL(ydl_opts_fallback) as ydl:
+                        ydl.download([youtube_url])
+                    print("✅ Download completed without cookies (final fallback)")
+                except Exception as e:
+                    print(f"❌ Final fallback also failed: {str(e)[:200]}...")
+                    raise
         
         # Run download in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
