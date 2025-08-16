@@ -22,10 +22,14 @@ RUN pip install --no-cache-dir --upgrade setuptools wheel && \
 # Copy backend files
 COPY backend/ ./backend/
 COPY railway_start.py .
+COPY test_backend.py .
 COPY runtime.txt .
 
 # Create storage directories
 RUN mkdir -p backend/storage/videos
+
+# Test the backend before starting
+RUN python test_backend.py
 
 # Expose port
 EXPOSE 8000
