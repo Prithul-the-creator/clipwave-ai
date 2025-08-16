@@ -40,10 +40,10 @@ RUN pip install --no-cache-dir --upgrade setuptools wheel && \
 COPY backend/ ./backend/
 COPY railway_start.py .
 COPY runtime.txt .
-COPY copy_cookies.sh .
+COPY docker_cookies.sh .
 
 # Handle cookies file
-RUN chmod +x copy_cookies.sh && ./copy_cookies.sh
+RUN chmod +x docker_cookies.sh && ./docker_cookies.sh
 
 # Copy built frontend from previous stage
 COPY --from=frontend-builder /app/dist ./frontend
