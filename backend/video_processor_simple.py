@@ -70,6 +70,7 @@ class VideoProcessor:
     async def _download_youtube_video(self, youtube_url: str, output_path: str):
         """Download YouTube video"""
         def download():
+            print("🔍 Starting cookie detection...")
             # Check if cookies file exists in multiple locations
             import os
             possible_cookie_paths = [
@@ -104,6 +105,8 @@ class VideoProcessor:
                 except Exception as e:
                     print(f"❌ Error reading cookies file: {e}")
                     cookies_path = None
+            
+            print(f"🎯 Final cookies_path: {cookies_path}")
             
             ydl_opts = {
                 'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
