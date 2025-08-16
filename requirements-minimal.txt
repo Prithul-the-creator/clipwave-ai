@@ -7,3 +7,5 @@ openai
 python-dotenv
 pydantic
 aiofiles
+openai-whisper
+moviepy
