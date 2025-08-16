@@ -55,6 +55,11 @@ class HybridVideoProcessor:
             video_info = await self.youtube_api.get_video_info(video_id)
             if video_info:
                 update_progress(5, f"Video info retrieved: {video_info.get('title', 'Unknown')}")
+                
+                # Check if video is age-restricted
+                if video_info.get('age_restricted'):
+                    raise ValueError("This video is age-restricted and requires authentication. Please use a video that is publicly accessible.")
+                    
             else:
                 update_progress(5, "Video info not available via API, proceeding with download...")
             

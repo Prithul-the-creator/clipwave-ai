@@ -36,7 +36,7 @@ class YouTubeAPIClient:
             self.service = build('youtube', 'v3', developerKey=self.api_key)
             return True
         
-        # Try OAuth flow
+        # Try OAuth flow (only if no API key)
         try:
             self.credentials = await self._load_credentials()
             if not self.credentials or not self.credentials.valid:
