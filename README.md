@@ -98,6 +98,31 @@ Run both backend and frontend with a single command:
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 
+## 🍪 YouTube Cookies Setup (Production)
+
+For production deployment, cookies are managed via environment variables for security and flexibility:
+
+### **Option 1: Railway Environment Variables (Recommended)**
+1. **Export your cookies** using "Get cookies.txt" browser extension
+2. **Run the setup script**:
+   ```bash
+   python setup_railway_cookies.py
+   ```
+3. **Copy the output** to Railway Variables:
+   - Go to Railway Dashboard → Variables
+   - Add: `YOUTUBE_COOKIES` = [paste cookies content]
+4. **Deploy** - cookies will be automatically used!
+
+### **Option 2: Local Development**
+- Place `cookies.txt` in the project root
+- The application will use it automatically
+
+### **Why Environment Variables?**
+- ✅ **Secure**: No sensitive data in code or Docker images
+- ✅ **Flexible**: Update cookies without rebuilding
+- ✅ **Dynamic**: Can be changed anytime
+- ✅ **Clean**: No file copying issues
+
 ## 🚀 Deployment
 
 ### Quick Deploy to Railway (Recommended)

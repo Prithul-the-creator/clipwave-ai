@@ -171,19 +171,32 @@ class VideoProcessor:
                 if os.path.exists('..'):
                     print(f"📂 Files in parent directory: {os.listdir('..')}")
                 
-                # Try to create a basic cookies file for testing
-                print(f"🔧 Attempting to create basic cookies file...")
-                try:
-                    basic_cookies = """# Netscape HTTP Cookie File
+                # Try to get cookies from environment variable
+                print(f"🔧 Checking for cookies in environment variable...")
+                cookies_env = os.getenv('YOUTUBE_COOKIES')
+                if cookies_env:
+                    print(f"✅ Found cookies in environment variable")
+                    try:
+                        with open('cookies.txt', 'w') as f:
+                            f.write(cookies_env)
+                        cookies_path = 'cookies.txt'
+                        print(f"✅ Created cookies file from environment variable")
+                    except Exception as e:
+                        print(f"❌ Failed to create cookies file from env: {e}")
+                else:
+                    # Try to create a basic cookies file for testing
+                    print(f"🔧 Creating basic cookies file for testing...")
+                    try:
+                        basic_cookies = """# Netscape HTTP Cookie File
 # This is a basic cookies file for testing
 .youtube.com	TRUE	/	FALSE	1735689600	VISITOR_INFO1_LIVE	test_value
 .youtube.com	TRUE	/	FALSE	1735689600	LOGIN_INFO	test_login_info"""
-                    with open('cookies.txt', 'w') as f:
-                        f.write(basic_cookies)
-                    cookies_path = 'cookies.txt'
-                    print(f"✅ Created basic cookies file for testing")
-                except Exception as e:
-                    print(f"❌ Failed to create cookies file: {e}")
+                        with open('cookies.txt', 'w') as f:
+                            f.write(basic_cookies)
+                        cookies_path = 'cookies.txt'
+                        print(f"✅ Created basic cookies file for testing")
+                    except Exception as e:
+                        print(f"❌ Failed to create cookies file: {e}")
             else:
                 # Check cookies file content
                 try:
