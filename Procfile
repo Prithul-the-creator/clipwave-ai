@@ -1,1 +1,1 @@
-web: python start_production.py
+web: pip install -r requirements.txt && python railway_start.py
