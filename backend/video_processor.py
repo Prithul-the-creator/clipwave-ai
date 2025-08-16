@@ -94,32 +94,45 @@ class VideoProcessor:
                 'cookies.txt',  # Current directory
                 '../cookies.txt',  # Parent directory
                 '/app/cookies.txt',  # Railway container root
-                './cookies.txt'  # Relative to current
+                './cookies.txt',  # Relative to current
+                '/app/backend/cookies.txt',  # Backend directory
+                '/app/backend/../cookies.txt'  # Parent of backend
             ]
+            
+            print(f"🔍 Searching for cookies file...")
+            print(f"📁 Current directory: {os.getcwd()}")
+            print(f"📂 Files in current directory: {os.listdir('.')}")
             
             cookies_path = None
             for path in possible_cookie_paths:
+                print(f"🔍 Checking: {path}")
                 if os.path.exists(path):
                     print(f"✅ Cookies file found at: {os.path.abspath(path)}")
                     cookies_path = path
                     self.cookies_path = path  # Store for transcript extraction
                     break
+                else:
+                    print(f"❌ Not found: {path}")
             
             if not cookies_path:
                 print(f"❌ Cookies file not found in any location")
-                print(f"📁 Current directory: {os.getcwd()}")
-                print(f"📂 Files in current directory: {os.listdir('.')}")
                 if os.path.exists('..'):
                     print(f"📂 Files in parent directory: {os.listdir('..')}")
+                if os.path.exists('/app'):
+                    print(f"📂 Files in /app directory: {os.listdir('/app')}")
             else:
                 # Check cookies file content
                 try:
                     with open(cookies_path, 'r') as f:
-                        lines = f.readlines()
+                        content = f.read()
+                        lines = content.split('\n')
                         youtube_cookies = [line for line in lines if '.youtube.com' in line]
                         print(f"🍪 Found {len(youtube_cookies)} YouTube cookies")
+                        print(f"📄 Cookies file size: {len(content)} bytes")
                         if youtube_cookies:
                             print(f"📋 Sample cookies: {youtube_cookies[:2]}")
+                        else:
+                            print("⚠️ No YouTube cookies found in file")
                 except Exception as e:
                     print(f"❌ Error reading cookies file: {e}")
                     cookies_path = None
@@ -141,10 +154,25 @@ class VideoProcessor:
                 'verbose': True
             }
             
+            # Try multiple cookie approaches
+            cookie_approaches = []
+            
+            # Approach 1: Use cookies file if available
+            if cookies_path:
+                cookie_approaches.append(('cookiefile', cookies_path))
+            
+            # Approach 2: Try to get cookies from browser (if available)
+            cookie_approaches.append(('cookiesfrombrowser', ('chrome',)))
+            
+            # Approach 3: Try Firefox cookies
+            cookie_approaches.append(('cookiesfrombrowser', ('firefox',)))
+            
             # Add cookies file if available
             if cookies_path:
                 ydl_opts['cookiefile'] = cookies_path
                 print(f"🍪 Using cookies file: {cookies_path}")
+                print(f"🔧 cookiefile added to yt-dlp options: {cookies_path}")
+                
                 # Verify cookies file content
                 try:
                     with open(cookies_path, 'r') as f:
@@ -159,65 +187,46 @@ class VideoProcessor:
             else:
                 print("❌ No cookies file available")
             
-            try:
-                print(f"🔧 yt-dlp options: {ydl_opts}")
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([youtube_url])
-                print("✅ Download completed successfully with cookies")
-            except Exception as e:
-                print(f"❌ Download failed with cookies: {e}")
-                if cookies_path:
-                    print("🔄 Trying alternative cookie approach...")
-                    # Try with cookiesfrombrowser approach
-                    ydl_opts_alt = {
-                        'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
-                        'outtmpl': output_path,
-                        'merge_output_format': 'mp4',
-                        'cookiesfrombrowser': ('chrome',),  # Try to get cookies from Chrome
-                        'http_headers': {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                        },
-                        'retries': 3,
-                        'fragment_retries': 3,
-                        'verbose': True
-                    }
-                    try:
-                        with yt_dlp.YoutubeDL(ydl_opts_alt) as ydl:
-                            ydl.download([youtube_url])
-                        print("✅ Download completed with browser cookies")
-                    except Exception as e2:
-                        print(f"❌ Browser cookies also failed: {e2}")
-                        # Final fallback: try without cookies
-                        ydl_opts_fallback = {
-                            'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
-                            'outtmpl': output_path,
-                            'merge_output_format': 'mp4',
-                            'http_headers': {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                            },
-                            'retries': 3,
-                            'fragment_retries': 3,
-                            'verbose': True
-                        }
-                        with yt_dlp.YoutubeDL(ydl_opts_fallback) as ydl:
-                            ydl.download([youtube_url])
-                        print("✅ Download completed without cookies (fallback)")
-                else:
-                    # No cookies available, just use fallback
-                    ydl_opts_fallback = {
-                        'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
-                        'outtmpl': output_path,
-                        'merge_output_format': 'mp4',
-                        'http_headers': {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                        },
-                        'retries': 3,
-                        'fragment_retries': 3,
-                        'verbose': True
-                    }
-                    with yt_dlp.YoutubeDL(ydl_opts_fallback) as ydl:
+            # Try each cookie approach
+            download_success = False
+            
+            for i, (cookie_type, cookie_value) in enumerate(cookie_approaches):
+                try:
+                    # Create a copy of options for this attempt
+                    current_opts = ydl_opts.copy()
+                    current_opts[cookie_type] = cookie_value
+                    
+                    print(f"🔄 Attempt {i+1}: Using {cookie_type} = {cookie_value}")
+                    print(f"🔧 yt-dlp options: {current_opts}")
+                    
+                    with yt_dlp.YoutubeDL(current_opts) as ydl:
                         ydl.download([youtube_url])
-                    print("✅ Download completed without cookies (fallback)")
+                    
+                    print(f"✅ Download completed successfully with {cookie_type}")
+                    download_success = True
+                    break
+                    
+                except Exception as e:
+                    print(f"❌ Attempt {i+1} failed with {cookie_type}: {e}")
+                    continue
+            
+            # If all cookie approaches failed, try without cookies
+            if not download_success:
+                print("🔄 All cookie approaches failed, trying without cookies...")
+                ydl_opts_fallback = {
+                    'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
+                    'outtmpl': output_path,
+                    'merge_output_format': 'mp4',
+                    'http_headers': {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    },
+                    'retries': 3,
+                    'fragment_retries': 3,
+                    'verbose': True
+                }
+                with yt_dlp.YoutubeDL(ydl_opts_fallback) as ydl:
+                    ydl.download([youtube_url])
+                print("✅ Download completed without cookies (final fallback)")
         
         # Run download in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
