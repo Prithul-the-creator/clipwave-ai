@@ -107,27 +107,40 @@ class VideoProcessor:
             if not video_id:
                 raise ValueError("Could not extract video ID from URL")
             
-            # Get transcript
-            api = YouTubeTranscriptApi()
-            transcript_list = api.fetch(video_id, languages=['en'])
-            print("YouTube transcript retrieved successfully.", flush=True)
-            
-            # Convert to our format
-            transcript = []
-            for segment in transcript_list:
-                text = segment.text
-                start_time_sec = segment.start
-                end_time_sec = segment.start + segment.duration
-                transcript.append((text, start_time_sec, end_time_sec))
-            
-            end_time = time.time()
-            print(f"Transcript retrieval took {end_time - start_time:.2f} seconds")
-            print(transcript)
-            return transcript
+            try:
+                # Get transcript with timeout and error handling
+                api = YouTubeTranscriptApi()
+                transcript_list = api.fetch(video_id, languages=['en'])
+                print("YouTube transcript retrieved successfully.", flush=True)
+                
+                # Convert to our format
+                transcript = []
+                for segment in transcript_list:
+                    text = segment.text
+                    start_time_sec = segment.start
+                    end_time_sec = segment.start + segment.duration
+                    transcript.append((text, start_time_sec, end_time_sec))
+                
+                end_time = time.time()
+                print(f"Transcript retrieval took {end_time - start_time:.2f} seconds")
+                print(f"Found {len(transcript)} transcript segments", flush=True)
+                return transcript
+                
+            except Exception as e:
+                print(f"Error getting transcript: {str(e)}", flush=True)
+                # Return empty transcript if API fails
+                return []
         
-        # Run transcript retrieval in thread pool
+        # Run transcript retrieval in thread pool with timeout
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, get_transcript)
+        try:
+            return await asyncio.wait_for(
+                loop.run_in_executor(None, get_transcript),
+                timeout=30.0  # 30 second timeout
+            )
+        except asyncio.TimeoutError:
+            print("Transcript retrieval timed out, returning empty transcript", flush=True)
+            return []
     
     def _extract_video_id(self, youtube_url: str) -> Optional[str]:
         """Extract video ID from YouTube URL"""
