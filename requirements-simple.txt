@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+websockets
+yt-dlp
+openai-whisper
+openai
+moviepy
+python-dotenv
+pydantic
+aiofiles
