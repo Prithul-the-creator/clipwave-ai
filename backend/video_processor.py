@@ -39,23 +39,37 @@ class VideoProcessor:
                 progress_callback(progress, step)
         
         try:
-            # Step 1: Download video (0-25%)
-            update_progress(0, "Downloading video...")
+            # Step 0: Check video accessibility (0-5%)
+            update_progress(0, "Checking video accessibility...")
+            accessibility = await self._check_video_accessibility(youtube_url)
+            
+            if not accessibility['accessible']:
+                error_msg = f"Video not accessible: {accessibility.get('error', 'Unknown error')}"
+                if accessibility.get('age_restricted'):
+                    error_msg += " (Age-restricted content requires valid cookies)"
+                elif accessibility.get('private'):
+                    error_msg += " (Private content requires authentication)"
+                raise ValueError(error_msg)
+            
+            update_progress(5, f"Video accessible: {accessibility.get('title', 'Unknown')}")
+            
+            # Step 1: Download video (5-30%)
+            update_progress(5, "Downloading video...")
             await self._download_youtube_video(youtube_url, str(self.video_path))
-            update_progress(25, "Video downloaded successfully")
+            update_progress(30, "Video downloaded successfully")
             
-            # Step 2: Get transcript (25-50%)
-            update_progress(25, "Getting video transcript...")
+            # Step 2: Get transcript (30-55%)
+            update_progress(30, "Getting video transcript...")
             transcript = await self._transcribe_video(youtube_url)
-            update_progress(50, "Transcript retrieved")
+            update_progress(55, "Transcript retrieved")
             
-            # Step 3: Process with GPT and identify clips (50-75%)
-            update_progress(50, "Analyzing content and identifying clips...")
+            # Step 3: Process with GPT and identify clips (55-80%)
+            update_progress(55, "Analyzing content and identifying clips...")
             timestamps = await self._identify_clips(transcript, instructions)
-            update_progress(75, "Clips identified")
+            update_progress(80, "Clips identified")
             
-            # Step 4: Render final video (75-100%)
-            update_progress(75, "Rendering final video...")
+            # Step 4: Render final video (80-100%)
+            update_progress(80, "Rendering final video...")
             clips_info = await self._render_video(str(self.video_path), timestamps)
             update_progress(100, "Video processing completed")
             
@@ -65,7 +79,8 @@ class VideoProcessor:
             return {
                 "video_path": str(self.output_path),
                 "clips": clips_info,
-                "transcript": transcript
+                "transcript": transcript,
+                "video_info": accessibility
             }
             
         except Exception as e:
@@ -75,59 +90,78 @@ class VideoProcessor:
     async def _download_youtube_video(self, youtube_url: str, output_path: str):
         """Download YouTube video with enhanced authentication handling"""
         def download():
-            ydl_opts = {
-                'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',  # Limit to 720p for faster processing
-                'outtmpl': output_path,
-                'merge_output_format': 'mp4',
-                'sleep_interval': 2,  # Add delay to avoid rate limiting
-                'max_sleep_interval': 5,
-                'retries': 3,  # Retry failed downloads
-                'fragment_retries': 3,
-                'ignoreerrors': False,
-                'no_warnings': False,
-                'quiet': False,
-                'verbose': True
-            }
-            
-            # Add cookies if available
-            cookies_file = Path("cookies.txt")
-            if cookies_file.exists():
-                ydl_opts['cookiefile'] = str(cookies_file)
-                print(f"Using cookies from {cookies_file}", flush=True)
-                
-                # Add additional extractor args for better compatibility
-                ydl_opts['extractor_args'] = {
-                    'youtube': {
-                        'player_skip': ['webpage', 'configs'],
-                        'player_client': ['android', 'web']
-                    }
-                }
-            else:
-                print("No cookies.txt found, downloading without authentication", flush=True)
-                # Use mweb client as fallback for better compatibility
-                ydl_opts['extractor_args'] = {
-                    'youtube': {
-                        'player_client': ['mweb', 'web']
-                    }
-                }
-            
-            try:
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([youtube_url])
-            except Exception as e:
-                print(f"Download failed with error: {str(e)}", flush=True)
-                # Try without cookies as fallback
-                if 'cookiefile' in ydl_opts:
-                    print("Retrying without cookies...", flush=True)
-                    del ydl_opts['cookiefile']
-                    del ydl_opts['extractor_args']
-                    ydl_opts['extractor_args'] = {
+            # Try multiple strategies for downloading
+            strategies = [
+                # Strategy 1: With cookies and android client
+                {
+                    'cookiefile': 'cookies.txt' if Path("cookies.txt").exists() else None,
+                    'extractor_args': {
+                        'youtube': {
+                            'player_client': ['android', 'web'],
+                            'player_skip': ['webpage', 'configs']
+                        }
+                    },
+                    'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]'
+                },
+                # Strategy 2: With cookies and mweb client
+                {
+                    'cookiefile': 'cookies.txt' if Path("cookies.txt").exists() else None,
+                    'extractor_args': {
                         'youtube': {
                             'player_client': ['mweb', 'web']
                         }
+                    },
+                    'format': 'best[height<=720]'
+                },
+                # Strategy 3: Without cookies, public access
+                {
+                    'extractor_args': {
+                        'youtube': {
+                            'player_client': ['web']
+                        }
+                    },
+                    'format': 'best[height<=720]'
+                }
+            ]
+            
+            for i, strategy in enumerate(strategies, 1):
+                try:
+                    print(f"Trying download strategy {i}...", flush=True)
+                    
+                    ydl_opts = {
+                        'outtmpl': output_path,
+                        'merge_output_format': 'mp4',
+                        'sleep_interval': 2,
+                        'max_sleep_interval': 5,
+                        'retries': 2,
+                        'fragment_retries': 2,
+                        'ignoreerrors': False,
+                        'no_warnings': False,
+                        'quiet': False,
+                        'verbose': True
                     }
+                    
+                    # Apply strategy
+                    if strategy.get('cookiefile'):
+                        ydl_opts['cookiefile'] = strategy['cookiefile']
+                        print(f"Using cookies: {strategy['cookiefile']}", flush=True)
+                    
+                    ydl_opts['extractor_args'] = strategy['extractor_args']
+                    ydl_opts['format'] = strategy['format']
+                    
                     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                         ydl.download([youtube_url])
+                    
+                    print(f"Download successful with strategy {i}!", flush=True)
+                    return  # Success, exit
+                    
+                except Exception as e:
+                    print(f"Strategy {i} failed: {str(e)}", flush=True)
+                    if i < len(strategies):
+                        print("Trying next strategy...", flush=True)
+                    else:
+                        print("All strategies failed!", flush=True)
+                        raise e
         
         # Run download in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
@@ -192,6 +226,40 @@ class VideoProcessor:
             if match:
                 return match.group(1)
         return None
+    
+    async def _check_video_accessibility(self, youtube_url: str) -> Dict[str, Any]:
+        """Check if a video is accessible and get basic info"""
+        def check_access():
+            try:
+                ydl_opts = {
+                    'quiet': True,
+                    'no_warnings': True,
+                    'extract_flat': True
+                }
+                
+                # Try with cookies first
+                if Path("cookies.txt").exists():
+                    ydl_opts['cookiefile'] = 'cookies.txt'
+                
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(youtube_url, download=False)
+                    return {
+                        'accessible': True,
+                        'title': info.get('title', 'Unknown'),
+                        'duration': info.get('duration', 0),
+                        'age_restricted': info.get('age_limit', 0) > 0,
+                        'private': info.get('availability', 'public') != 'public'
+                    }
+            except Exception as e:
+                return {
+                    'accessible': False,
+                    'error': str(e),
+                    'age_restricted': 'bot' in str(e).lower() or 'login' in str(e).lower(),
+                    'private': 'private' in str(e).lower()
+                }
+        
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, check_access)
     
 
     
