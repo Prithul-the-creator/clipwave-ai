@@ -1,5 +1,5 @@
 // For Railway deployment, use relative URLs since frontend and backend are served from same domain
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export interface VideoRequest {
   youtube_url: string;
