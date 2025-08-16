@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-from video_processor import VideoProcessor
+from hybrid_video_processor import HybridVideoProcessor
 from job_manager import JobManager
 
 app = FastAPI(title="ClipWave AI API", version="1.0.0")
@@ -227,7 +227,7 @@ async def process_video_job(job_id: str, youtube_url: str, instructions: str):
         })
         
         # Create video processor
-        processor = VideoProcessor(job_id)
+        processor = HybridVideoProcessor(job_id)
         
         # Process video with progress updates
         def progress_callback(progress: int, message: str):
