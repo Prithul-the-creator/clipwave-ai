@@ -29,8 +29,8 @@ def extract_youtube_transcript(video_id: str) -> List[Dict[str, Any]]:
             print(f"[{entry['start']}s] {entry['text']}")
     """
     try:
-        from youtube_transcript_api import YouTubeTranscriptApi
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+        import youtube_transcript_api
+        transcript_list = youtube_transcript_api.YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
         return transcript_list
     except Exception as e:
         print(f"Error extracting transcript for video {video_id}: {e}")
@@ -270,9 +270,9 @@ class VideoProcessor:
         """Get transcript using YouTube Transcript API"""
         def get_transcript():
             try:
-                from youtube_transcript_api import YouTubeTranscriptApi
+                import youtube_transcript_api
                 print(f"🔍 Attempting to get transcript for video: {video_id}")
-                transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+                transcript_list = youtube_transcript_api.YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
                 print(f"✅ Successfully retrieved transcript with {len(transcript_list)} entries")
                 # Convert to our format: (text, start_time, end_time)
                 formatted_transcript = []
