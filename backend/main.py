@@ -53,7 +53,7 @@ if not frontend_path.exists():
     frontend_path = Path("/app/frontend")
 
 if frontend_path.exists():
-    app.mount("/static", StaticFiles(directory=str(frontend_path / "assets")), name="static")
+    app.mount("/assets", StaticFiles(directory=str(frontend_path / "assets")), name="assets")
     print(f"✅ Frontend static files mounted from: {frontend_path}")
 else:
     print(f"❌ Frontend directory not found. Tried: {frontend_path}")
