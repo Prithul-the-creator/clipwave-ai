@@ -15,7 +15,7 @@ from typing import Callable, Optional, Dict, Any, List, Tuple
 import time
 from pathlib import Path
 from youtube_transcript_api import YouTubeTranscriptApi
-from .youtube_api_client import YouTubeAPIClient
+from youtube_api_client import YouTubeAPIClient
 
 
 class HybridVideoProcessor:
