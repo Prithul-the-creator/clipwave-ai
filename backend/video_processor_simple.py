@@ -63,14 +63,47 @@ class VideoProcessor:
     async def _download_youtube_video(self, youtube_url: str, output_path: str):
         """Download YouTube video"""
         def download():
+            # Check if cookies file exists in multiple locations
+            import os
+            possible_cookie_paths = [
+                'cookies.txt',  # Current directory
+                '../cookies.txt',  # Parent directory
+                '/app/cookies.txt',  # Railway container root
+                './cookies.txt'  # Relative to current
+            ]
+            
+            cookies_path = None
+            for path in possible_cookie_paths:
+                if os.path.exists(path):
+                    print(f"✅ Cookies file found at: {os.path.abspath(path)}")
+                    cookies_path = path
+                    break
+            
+            if not cookies_path:
+                print(f"❌ Cookies file not found in any location")
+                print(f"📁 Current directory: {os.getcwd()}")
+                print(f"📂 Files in current directory: {os.listdir('.')}")
+                if os.path.exists('..'):
+                    print(f"📂 Files in parent directory: {os.listdir('..')}")
+            else:
+                # Check cookies file content
+                try:
+                    with open(cookies_path, 'r') as f:
+                        lines = f.readlines()
+                        youtube_cookies = [line for line in lines if '.youtube.com' in line]
+                        print(f"🍪 Found {len(youtube_cookies)} YouTube cookies")
+                        if youtube_cookies:
+                            print(f"📋 Sample cookies: {youtube_cookies[:2]}")
+                except Exception as e:
+                    print(f"❌ Error reading cookies file: {e}")
+                    cookies_path = None
+            
             ydl_opts = {
                 'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
                 'outtmpl': output_path,
                 'merge_output_format': 'mp4',
-                # Add cookie handling
-                'cookiesfrombrowser': ('chrome',),  # Try to get cookies from Chrome
-                # Alternative cookie sources
-                'cookiefile': 'cookies.txt',  # If you have a cookies.txt file
+                # Use cookies file if available
+                'cookiefile': cookies_path,
                 # Add user agent to avoid bot detection
                 'http_headers': {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
