@@ -1,0 +1,6 @@
+.magnetLines-container > span {
+  transform: rotate(var(--rotate, -10deg));
+  transition: transform 0.2s;
+  border-radius: 999px;
+  margin: auto;
+} 
