@@ -49,39 +49,107 @@ class VideoProcessor:
         """Get transcript from YouTube using Transcript API"""
         def fetch_transcript():
             try:
+                # Check if cookies file exists in multiple locations (SAME LOGIC AS VIDEO DOWNLOAD)
+                import os
+                possible_cookie_paths = [
+                    'cookies.txt',  # Current directory
+                    '../cookies.txt',  # Parent directory
+                    '/app/cookies.txt',  # Railway container root
+                    './cookies.txt'  # Relative to current
+                ]
+                
+                cookies_path = None
+                for path in possible_cookie_paths:
+                    if os.path.exists(path):
+                        print(f"✅ Cookies file found for transcript at: {os.path.abspath(path)}")
+                        cookies_path = path
+                        break
+                
+                if not cookies_path:
+                    print(f"❌ Cookies file not found for transcript extraction")
+                    print(f"📁 Current directory: {os.getcwd()}")
+                    print(f"📂 Files in current directory: {os.listdir('.')}")
+                    if os.path.exists('..'):
+                        print(f"📂 Files in parent directory: {os.listdir('..')}")
+                
                 # Use yt-dlp to get transcript (more reliable than external API)
                 ydl_opts = {
                     'writesubtitles': True,
                     'writeautomaticsub': True,
                     'subtitleslangs': ['en'],
                     'skip_download': True,
-                    'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
+                    # Use cookies file if available (SAME AS VIDEO DOWNLOAD)
+                    'cookiefile': cookies_path,
+                    # Add user agent to avoid bot detection (SAME AS VIDEO DOWNLOAD)
                     'http_headers': {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                    }
+                    },
+                    # Retry options (SAME AS VIDEO DOWNLOAD)
+                    'retries': 3,
+                    'fragment_retries': 3,
+                    # Skip age-restricted content if possible (SAME AS VIDEO DOWNLOAD)
+                    'age_limit': 18,
+                    # Verbose output for debugging (SAME AS VIDEO DOWNLOAD)
+                    'verbose': True
                 }
                 
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
-                    
-                    # Try to get automatic captions
-                    if 'automatic_captions' in info and 'en' in info['automatic_captions']:
-                        captions = info['automatic_captions']['en']
-                        if captions:
-                            # Get the first available format
-                            caption_url = captions[0]['url']
-                            return self._parse_caption_url(caption_url)
-                    
-                    # Try manual captions
-                    if 'subtitles' in info and 'en' in info['subtitles']:
-                        captions = info['subtitles']['en']
-                        if captions:
-                            caption_url = captions[0]['url']
-                            return self._parse_caption_url(caption_url)
-                    
-                    # Fallback: return empty transcript
-                    print(f"⚠️ No captions found for video {video_id}")
-                    return []
+                try:
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
+                        
+                        # Try to get automatic captions
+                        if 'automatic_captions' in info and 'en' in info['automatic_captions']:
+                            captions = info['automatic_captions']['en']
+                            if captions:
+                                # Get the first available format
+                                caption_url = captions[0]['url']
+                                return self._parse_caption_url(caption_url)
+                        
+                        # Try manual captions
+                        if 'subtitles' in info and 'en' in info['subtitles']:
+                            captions = info['subtitles']['en']
+                            if captions:
+                                caption_url = captions[0]['url']
+                                return self._parse_caption_url(caption_url)
+                        
+                        # Fallback: return empty transcript
+                        print(f"⚠️ No captions found for video {video_id}")
+                        return []
+                        
+                except Exception as e:
+                    print(f"Transcript extraction failed with cookies: {e}")
+                    # Fallback: try without cookies (SAME AS VIDEO DOWNLOAD)
+                    ydl_opts_fallback = {
+                        'writesubtitles': True,
+                        'writeautomaticsub': True,
+                        'subtitleslangs': ['en'],
+                        'skip_download': True,
+                        'http_headers': {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                        },
+                        'retries': 3,
+                        'fragment_retries': 3,
+                        'verbose': True
+                    }
+                    with yt_dlp.YoutubeDL(ydl_opts_fallback) as ydl:
+                        info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
+                        
+                        # Try to get automatic captions
+                        if 'automatic_captions' in info and 'en' in info['automatic_captions']:
+                            captions = info['automatic_captions']['en']
+                            if captions:
+                                caption_url = captions[0]['url']
+                                return self._parse_caption_url(caption_url)
+                        
+                        # Try manual captions
+                        if 'subtitles' in info and 'en' in info['subtitles']:
+                            captions = info['subtitles']['en']
+                            if captions:
+                                caption_url = captions[0]['url']
+                                return self._parse_caption_url(caption_url)
+                        
+                        print(f"⚠️ No captions found for video {video_id} (fallback)")
+                        return []
                     
             except Exception as e:
                 print(f"❌ Error fetching transcript: {e}")
