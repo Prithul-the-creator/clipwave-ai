@@ -174,16 +174,22 @@ class VideoProcessor:
                 # Try to get cookies from environment variable
                 print(f"🔧 Checking for cookies in environment variable...")
                 cookies_env = os.getenv('YOUTUBE_COOKIES')
+                print(f"🔧 Environment variable YOUTUBE_COOKIES exists: {cookies_env is not None}")
+                print(f"🔧 Environment variable length: {len(cookies_env) if cookies_env else 0}")
                 if cookies_env:
                     print(f"✅ Found cookies in environment variable")
+                    print(f"📋 First 100 chars: {cookies_env[:100]}...")
                     try:
                         with open('cookies.txt', 'w') as f:
                             f.write(cookies_env)
                         cookies_path = 'cookies.txt'
                         print(f"✅ Created cookies file from environment variable")
+                        print(f"📋 File size: {os.path.getsize('cookies.txt')} bytes")
                     except Exception as e:
                         print(f"❌ Failed to create cookies file from env: {e}")
                 else:
+                    print(f"❌ YOUTUBE_COOKIES environment variable not found")
+                    print(f"🔧 Available environment variables: {[k for k in os.environ.keys() if 'COOKIE' in k.upper() or 'YOUTUBE' in k.upper()]}")
                     # Try to create a basic cookies file for testing
                     print(f"🔧 Creating basic cookies file for testing...")
                     try:
