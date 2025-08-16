@@ -10,7 +10,7 @@ from typing import Callable, Optional, Dict, Any, List, Tuple
 import threading
 import time
 from pathlib import Path
-from youtube_transcript_api import YouTubeTranscriptApi
+# YouTube Transcript API will be imported inside functions to avoid import issues
 
 
 def extract_youtube_transcript(video_id: str) -> List[Dict[str, Any]]:
