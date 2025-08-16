@@ -174,11 +174,17 @@ class VideoProcessor:
                 # Check cookies file content
                 try:
                     with open(cookies_path, 'r') as f:
-                        lines = f.readlines()
-                        youtube_cookies = [line for line in lines if '.youtube.com' in line]
+                        content = f.read()
+                        lines = content.split('\n')
+                        youtube_cookies = [line for line in lines if '.youtube.com' in line and not line.startswith('#')]
                         print(f"🍪 Found {len(youtube_cookies)} YouTube cookies")
+                        print(f"📋 Cookies file size: {len(content)} characters")
                         if youtube_cookies:
                             print(f"📋 Sample cookies: {youtube_cookies[:2]}")
+                        else:
+                            print(f"⚠️ No valid YouTube cookies found in file")
+                            print(f"📋 File content preview: {content[:200]}...")
+                            cookies_path = None
                 except Exception as e:
                     print(f"❌ Error reading cookies file: {e}")
                     cookies_path = None
@@ -246,7 +252,9 @@ class VideoProcessor:
         def get_transcript():
             try:
                 from youtube_transcript_api import YouTubeTranscriptApi
+                print(f"🔍 Attempting to get transcript for video: {video_id}")
                 transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+                print(f"✅ Successfully retrieved transcript with {len(transcript_list)} entries")
                 # Convert to our format: (text, start_time, end_time)
                 formatted_transcript = []
                 for entry in transcript_list:
@@ -256,7 +264,8 @@ class VideoProcessor:
                     formatted_transcript.append((text, start_time, end_time))
                 return formatted_transcript
             except Exception as e:
-                print(f"Error getting transcript: {e}")
+                print(f"❌ Error getting transcript: {e}")
+                print(f"🔍 This might be due to: video not having transcripts, language issues, or API problems")
                 # Return empty transcript if API fails
                 return []
         
