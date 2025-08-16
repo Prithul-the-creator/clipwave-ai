@@ -30,6 +30,11 @@ dist-ssr
 .env.test.local
 .env.production.local
 
+# Cookie files (contain sensitive data)
+cookies.txt
+youtube_cookies.txt
+*.cookies
+
 # Python
 __pycache__/
 *.py[cod]
