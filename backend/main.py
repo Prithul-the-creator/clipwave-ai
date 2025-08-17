@@ -231,20 +231,15 @@ async def process_video_job(job_id: str, youtube_url: str, instructions: str):
         
         # Process video with progress updates
         def progress_callback(progress: int, message: str):
-            job_manager.update_job(job_id, {
-                "status": "processing",
-                "progress": progress,
-                "current_step": message
-            })
-            # Broadcast update via WebSocket
-            asyncio.create_task(manager.broadcast(
-                json.dumps({
-                    "type": "progress",
-                    "job_id": job_id,
+            try:
+                job_manager.update_job(job_id, {
+                    "status": "processing",
                     "progress": progress,
-                    "message": message
+                    "current_step": message
                 })
-            ))
+                print(f"Job {job_id} progress: {progress}% - {message}", flush=True)
+            except Exception as e:
+                print(f"Error updating job progress: {e}", flush=True)
         
         # Process the video
         result = await processor.process_video(youtube_url, instructions, progress_callback)
@@ -258,16 +253,10 @@ async def process_video_job(job_id: str, youtube_url: str, instructions: str):
             "clips": result.get("clips", [])
         })
         
-        # Broadcast completion
-        asyncio.create_task(manager.broadcast(
-            json.dumps({
-                "type": "completed",
-                "job_id": job_id,
-                "clips": result.get("clips", [])
-            })
-        ))
+        print(f"Job {job_id} completed successfully!", flush=True)
         
     except Exception as e:
+        print(f"Job {job_id} failed with error: {str(e)}", flush=True)
         # Update job with error
         job_manager.update_job(job_id, {
             "status": "failed",
@@ -275,15 +264,6 @@ async def process_video_job(job_id: str, youtube_url: str, instructions: str):
             "current_step": f"Error: {str(e)}",
             "error": str(e)
         })
-        
-        # Broadcast error
-        asyncio.create_task(manager.broadcast(
-            json.dumps({
-                "type": "error",
-                "job_id": job_id,
-                "error": str(e)
-            })
-        ))
 
 if __name__ == "__main__":
     import uvicorn
