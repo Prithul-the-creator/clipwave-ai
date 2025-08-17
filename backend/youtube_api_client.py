@@ -33,24 +33,16 @@ class YouTubeAPIClient:
         """Authenticate with YouTube API using OAuth or API key"""
         if self.api_key:
             # Use API key for read-only operations
-            self.service = build('youtube', 'v3', developerKey=self.api_key)
-            return True
+            try:
+                self.service = build('youtube', 'v3', developerKey=self.api_key)
+                return True
+            except Exception as e:
+                print(f"Failed to build YouTube service with API key: {e}")
+                return False
         
-        # Try OAuth flow (only if no API key)
-        try:
-            self.credentials = await self._load_credentials()
-            if not self.credentials or not self.credentials.valid:
-                if self.credentials and self.credentials.expired and self.credentials.refresh_token:
-                    await self._refresh_credentials()
-                else:
-                    await self._authenticate_oauth()
-            
-            self.service = build('youtube', 'v3', credentials=self.credentials)
-            return True
-            
-        except Exception as e:
-            print(f"OAuth authentication failed: {e}")
-            return False
+        # Only try OAuth if no API key is provided
+        print("No YouTube API key provided, skipping API metadata")
+        return False
     
     async def _load_credentials(self):
         """Load saved credentials from file"""

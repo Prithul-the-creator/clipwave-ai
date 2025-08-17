@@ -140,7 +140,7 @@ async def create_job(request: VideoRequest):
 async def get_job(job_id: str, user_id: str = Query(...)):
     """Get job status"""
     job = job_manager.get_job(job_id)
-    if not job or job.user_id != user_id:
+    if not job or job.get("user_id") != user_id:
         raise HTTPException(status_code=404, detail="Job not found")
     
     return job
@@ -155,7 +155,7 @@ async def list_jobs(user_id: str = Query(...)):
 async def delete_job(job_id: str, user_id: str = Query(...)):
     """Delete a job"""
     job = job_manager.get_job(job_id)
-    if not job or job.user_id != user_id:
+    if not job or job.get("user_id") != user_id:
         raise HTTPException(status_code=404, detail="Job not found")
     
     job_manager.delete_job(job_id)
@@ -165,10 +165,10 @@ async def delete_job(job_id: str, user_id: str = Query(...)):
 async def get_video(job_id: str, user_id: str = Query(...)):
     """Download processed video"""
     job = job_manager.get_job(job_id)
-    if not job or job.user_id != user_id:
+    if not job or job.get("user_id") != user_id:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    if job.status != "completed":
+    if job.get("status") != "completed":
         raise HTTPException(status_code=400, detail="Video not ready")
     
     video_path = Path(f"storage/videos/{job_id}.mp4")
@@ -189,9 +189,9 @@ async def websocket_endpoint(websocket: WebSocket, job_id: str):
                 await manager.send_personal_message(
                     json.dumps({
                         "type": "status",
-                        "status": job.status,
-                        "progress": job.progress,
-                        "message": job.message
+                        "status": job.get("status"),
+                        "progress": job.get("progress"),
+                        "message": job.get("current_step")
                     }),
                     websocket
                 )
