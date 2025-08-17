@@ -1,14 +1,7 @@
 # ClipWave AI - YouTube Video Clipping Platform
 
-<video
-  src="zxcv.mp4"
-  
-  controls
-  playsinline
-  style="max-width: 100%; height: auto; border-radius: 12px;"
->
-  Sorry, your browser doesn't support embedded videos. You can
-  <a href="assets/clipwave-demo.mp4">download the demo here</a>.
+<video src="zxcv.mp4" controls playsinline style="max-width:100%; border-radius:12px;">
+  Your browser does not support the video tag.
 </video>
 
 A full-stack application that automatically clips YouTube videos based on AI-powered content analysis. Users can submit YouTube URLs with custom instructions, and the system will generate engaging clips using GPT-4 and Whisper AI.
