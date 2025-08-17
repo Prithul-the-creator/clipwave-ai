@@ -46,22 +46,14 @@ class HybridVideoProcessor:
                 progress_callback(progress, step)
         
         try:
-            # Step 0: Get video info using YouTube API (0-5%)
-            update_progress(0, "Getting video information...")
+            # Step 0: Skip API check for now (0-5%)
+            update_progress(0, "Checking video accessibility...")
             video_id = self._extract_video_id(youtube_url)
             if not video_id:
                 raise ValueError("Could not extract video ID from URL")
             
-            video_info = await self.youtube_api.get_video_info(video_id)
-            if video_info:
-                update_progress(5, f"Video info retrieved: {video_info.get('title', 'Unknown')}")
-                
-                # Check if video is age-restricted
-                if video_info.get('age_restricted'):
-                    raise ValueError("This video is age-restricted and requires authentication. Please use a video that is publicly accessible.")
-                    
-            else:
-                update_progress(5, "Video info not available via API, proceeding with download...")
+            # Skip API check for now due to referrer restrictions
+            update_progress(5, "Proceeding with direct download...")
             
             # Step 1: Download video with fallback strategies (5-35%)
             update_progress(5, "Downloading video...")
@@ -90,7 +82,7 @@ class HybridVideoProcessor:
                 "video_path": str(self.output_path),
                 "clips": clips_info,
                 "transcript": transcript,
-                "video_info": video_info
+                "video_info": None  # API check disabled for now
             }
             
         except Exception as e:
@@ -100,18 +92,16 @@ class HybridVideoProcessor:
     async def _download_with_fallbacks(self, youtube_url: str, output_path: str):
         """Download video using multiple fallback strategies"""
         strategies = [
-            # Strategy 1: yt-dlp with cookies (if available)
+            # Strategy 1: yt-dlp with web client (no cookies)
             {
-                'name': 'yt-dlp with cookies',
+                'name': 'yt-dlp with web client',
                 'config': {
-                    'cookiefile': 'cookies.txt' if Path("cookies.txt").exists() else None,
                     'extractor_args': {
                         'youtube': {
-                            'player_client': ['android', 'web'],
-                            'player_skip': ['webpage', 'configs']
+                            'player_client': ['web']
                         }
                     },
-                    'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]'
+                    'format': 'best[height<=720]'
                 }
             },
             # Strategy 2: yt-dlp with mweb client
@@ -121,18 +111,6 @@ class HybridVideoProcessor:
                     'extractor_args': {
                         'youtube': {
                             'player_client': ['mweb', 'web']
-                        }
-                    },
-                    'format': 'best[height<=720]'
-                }
-            },
-            # Strategy 3: yt-dlp with web client only
-            {
-                'name': 'yt-dlp with web client',
-                'config': {
-                    'extractor_args': {
-                        'youtube': {
-                            'player_client': ['web']
                         }
                     },
                     'format': 'best[height<=720]'
