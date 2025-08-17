@@ -77,8 +77,6 @@ A full-stack application that automatically clips YouTube videos based on AI-pow
    VITE_SUPABASE_URL=your_supabase_url_here
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
    ```
-   
-   **Important**: You need a valid OpenAI API key. Get one from https://platform.openai.com/account/api-keys
 
 ## Usage
 
@@ -87,24 +85,6 @@ Run both backend and frontend with a single command:
 ```bash
 ./start.sh
 ```
-
-### Manual Start
-
-1. **Start the backend server**
-   ```bash
-   cd backend
-   python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-   ```
-
-2. **Start the frontend server** (in a new terminal)
-   ```bash
-npm run dev
-```
-
-3. **Access the application**
-   - Frontend: http://localhost:8080
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
 
 ## How It Works
 
@@ -125,71 +105,6 @@ npm run dev
 - `GET /api/videos/{job_id}` - Download processed video
 - `WS /ws/{job_id}` - WebSocket for real-time updates
 
-## Project Structure
-
-```
-clipwave-ai-shorts/
-├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── job_manager.py       # Job storage and management
-│   ├── video_processor.py   # Video processing logic
-│   └── storage/             # Processed videos and job data
-├── src/
-│   ├── components/          # React components
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # API client and utilities
-│   └── pages/              # Page components
-├── requirements.txt         # Python dependencies
-├── package.json            # Node.js dependencies
-└── start.sh               # Startup script
-```
-
-## Configuration
-
-### Video Quality
-Adjust video quality in `backend/video_processor.py`:
-```python
-'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]'
-```
-
-### OpenAI Model
-Change the GPT model in `backend/video_processor.py`:
-```python
-model="gpt-4o"  # or "gpt-3.5-turbo"
-```
-
-### Whisper Model
-Modify the Whisper model in `backend/video_processor.py`:
-```python
-model = whisper.load_model("base")  # or "small", "medium", "large"
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **OpenAI API Key Error**
-   - Ensure your API key is valid and has sufficient credits
-   - Check the `.env` file is in the root directory and contains your API key
-
-2. **Video Download Failures**
-   - Some videos may be restricted or unavailable
-   - Check the YouTube URL is valid and accessible
-
-3. **Memory Issues**
-   - Large videos may require more RAM
-   - Consider reducing video quality or using shorter videos
-
-4. **Processing Time**
-   - Video processing can take several minutes depending on length
-   - Progress is shown in real-time via WebSocket
-
-### Performance Tips
-
-- Use shorter videos for faster processing
-- Limit video quality to 720p or lower
-- Ensure sufficient disk space for temporary files
-- Close other applications to free up system resources
 
 ## Contributing
 
@@ -202,10 +117,3 @@ model = whisper.load_model("base")  # or "small", "medium", "large"
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For issues and questions:
-- Check the troubleshooting section
-- Review the API documentation at http://localhost:8000/docs
-- Open an issue on GitHub
