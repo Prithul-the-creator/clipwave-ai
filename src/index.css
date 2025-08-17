@@ -55,6 +55,40 @@
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
+
+  /* Override Supabase Auth UI gray backgrounds */
+  [data-supabase-auth-ui] {
+    background: transparent !important;
+  }
+
+  [data-supabase-auth-ui] > div {
+    background: transparent !important;
+  }
+
+  [data-supabase-auth-ui] .supabase-auth-ui_ui-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  [data-supabase-auth-ui] .supabase-auth-ui_ui-input {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+
+  [data-supabase-auth-ui] .supabase-auth-ui_ui-input:focus {
+    border-color: rgba(59, 130, 246, 0.5) !important;
+  }
+
+  [data-supabase-auth-ui] form {
+    background: transparent !important;
+  }
+
+  [data-supabase-auth-ui] .supabase-auth-ui_ui-form {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
 }
 
 @layer utilities {

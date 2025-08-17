@@ -1,6 +1,6 @@
 # ClipWave AI - YouTube Video Clipping Platform
 
-A full-stack application that automatically clips YouTube videos based on AI-powered content analysis. Users can submit YouTube URLs with custom instructions, and the system will generate engaging clips using GPT-4 and YouTube Transcript API.
+A full-stack application that automatically clips YouTube videos based on AI-powered content analysis. Users can submit YouTube URLs with custom instructions, and the system will generate engaging clips using GPT-4 and Whisper AI.
 
 ## Features
 
@@ -18,7 +18,7 @@ A full-stack application that automatically clips YouTube videos based on AI-pow
 ### Backend
 - **FastAPI**: High-performance Python web framework
 - **yt-dlp**: YouTube video downloading
-- **YouTube Transcript API**: Fast transcript retrieval
+- **OpenAI Whisper**: Speech-to-text transcription
 - **OpenAI GPT-4**: Content analysis and clip identification
 - **MoviePy**: Video processing and editing
 - **WebSockets**: Real-time progress updates
@@ -46,28 +46,36 @@ A full-stack application that automatically clips YouTube videos based on AI-pow
    cd clipwave-ai-shorts
    ```
 
-2. **Install Python dependencies**
+2. **Run the setup script (recommended)**
+   ```bash
+   ./setup.sh
+   ```
+   
+   Or manually install dependencies:
    ```bash
    pip install -r requirements.txt
-   ```
-
-3. **Install Node.js dependencies**
-   ```bash
    npm install
    ```
 
-4. **Set up environment variables**
-   The `.env` file in the backend directory has been created. You need to add your OpenAI API key:
+3. **Set up environment variables**
+   Copy the example environment file and add your API keys:
    
    ```bash
-   cd backend
-   # Edit the .env file and replace 'your_new_api_key_here' with your actual API key
+   # Copy the example environment file
+   cp env.example .env
+   
+   # Edit the .env file with your actual API keys
    nano .env
    ```
    
-   Or manually edit the `.env` file:
+   Add your API keys to the `.env` file:
    ```env
+   # OpenAI API Key (required)
    OPENAI_API_KEY=your_actual_openai_api_key_here
+   
+   # Supabase Configuration (optional - defaults provided)
+   VITE_SUPABASE_URL=your_supabase_url_here
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
    ```
    
    **Important**: You need a valid OpenAI API key. Get one from https://platform.openai.com/account/api-keys
@@ -90,52 +98,23 @@ Run both backend and frontend with a single command:
 
 2. **Start the frontend server** (in a new terminal)
    ```bash
-   npm run dev
-   ```
+npm run dev
+```
 
 3. **Access the application**
    - Frontend: http://localhost:8080
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 
-## 🚀 Deployment
-
-### Quick Deploy to Railway (Recommended)
-
-1. **Push to GitHub**:
-   ```bash
-   ./deploy.sh
-   ```
-
-2. **Deploy to Railway**:
-   - Go to [Railway](https://railway.app)
-   - Sign up with GitHub
-   - Create New Project → "Deploy from GitHub repo"
-   - Select your repository
-   - Add environment variable: `OPENAI_API_KEY=your_api_key`
-   - Deploy!
-
-3. **Get your URL**: Railway will provide a URL like `https://your-app.railway.app`
-
-### Other Deployment Options
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions on:
-- Render deployment
-- Vercel + Railway setup
-- Environment configuration
-- Troubleshooting
-
 ## How It Works
 
 1. **Submit a YouTube URL**: Enter a YouTube video URL and optional instructions
 2. **Video Download**: The system downloads the video (limited to 720p for faster processing)
-3. **Transcript Retrieval**: YouTube Transcript API gets the video transcript (much faster than AI transcription)
+3. **AI Transcription**: Whisper AI transcribes the video content
 4. **Content Analysis**: GPT-4 analyzes the transcript and identifies engaging moments
 5. **Video Clipping**: MoviePy creates clips based on the identified timestamps
 6. **Real-time Updates**: Progress is tracked and displayed in real-time
 7. **Download**: Users can preview and download the generated clips
-
-**Note**: The system uses YouTube's official transcript data for maximum accuracy and speed.
 
 ## API Endpoints
 
@@ -179,7 +158,11 @@ Change the GPT model in `backend/video_processor.py`:
 model="gpt-4o"  # or "gpt-3.5-turbo"
 ```
 
-
+### Whisper Model
+Modify the Whisper model in `backend/video_processor.py`:
+```python
+model = whisper.load_model("base")  # or "small", "medium", "large"
+```
 
 ## Troubleshooting
 
@@ -187,7 +170,7 @@ model="gpt-4o"  # or "gpt-3.5-turbo"
 
 1. **OpenAI API Key Error**
    - Ensure your API key is valid and has sufficient credits
-   - Check the `.env` file is in the correct location
+   - Check the `.env` file is in the root directory and contains your API key
 
 2. **Video Download Failures**
    - Some videos may be restricted or unavailable

@@ -1,4 +1,5 @@
 import yt_dlp
+import whisper
 import tempfile
 import os
 import re
@@ -11,7 +12,6 @@ from typing import Callable, Optional, Dict, Any, List, Tuple
 import threading
 import time
 from pathlib import Path
-from youtube_transcript_api import YouTubeTranscriptApi
 
 
 class VideoProcessor:
@@ -39,37 +39,24 @@ class VideoProcessor:
                 progress_callback(progress, step)
         
         try:
-            # Step 0: Check video accessibility (0-5%)
-            update_progress(0, "Checking video accessibility...")
-            accessibility = await self._check_video_accessibility(youtube_url)
-            
-            if not accessibility['accessible']:
-                error_msg = f"Video not accessible: {accessibility.get('error', 'Unknown error')}"
-                if accessibility.get('age_restricted'):
-                    error_msg += " (Age-restricted content requires valid cookies)"
-                elif accessibility.get('private'):
-                    error_msg += " (Private content requires authentication)"
-                raise ValueError(error_msg)
-            
-            update_progress(5, f"Video accessible: {accessibility.get('title', 'Unknown')}")
-            
-            # Step 1: Download video (5-30%)
-            update_progress(5, "Downloading video...")
+            # Step 1: Download video (0-25%)
+            update_progress(0, "Downloading video...")
             await self._download_youtube_video(youtube_url, str(self.video_path))
-            update_progress(30, "Video downloaded successfully")
+            update_progress(25, "Video downloaded successfully")
             
-            # Step 2: Get transcript (30-55%)
-            update_progress(30, "Getting video transcript...")
-            transcript = await self._transcribe_video(youtube_url)
-            update_progress(55, "Transcript retrieved")
+            # Step 2: Transcribe video (25-50%)
+            update_progress(25, "Transcribing video with AI...")
+            transcript = await self._transcribe_video(str(self.video_path))
+            update_progress(50, "Transcription completed")
             
-            # Step 3: Process with GPT and identify clips (55-80%)
-            update_progress(55, "Analyzing content and identifying clips...")
+            # Step 3: Process with GPT and identify clips (50-75%)
+            update_progress(50, "Analyzing content and identifying clips...")
+            print(f"Processing transcript with {len(transcript)} segments...", flush=True)
             timestamps = await self._identify_clips(transcript, instructions)
-            update_progress(80, "Clips identified")
+            update_progress(75, "Clips identified")
             
-            # Step 4: Render final video (80-100%)
-            update_progress(80, "Rendering final video...")
+            # Step 4: Render final video (75-100%)
+            update_progress(75, "Rendering final video...")
             clips_info = await self._render_video(str(self.video_path), timestamps)
             update_progress(100, "Video processing completed")
             
@@ -79,8 +66,7 @@ class VideoProcessor:
             return {
                 "video_path": str(self.output_path),
                 "clips": clips_info,
-                "transcript": transcript,
-                "video_info": accessibility
+                "transcript": transcript
             }
             
         except Exception as e:
@@ -88,185 +74,55 @@ class VideoProcessor:
             raise e
     
     async def _download_youtube_video(self, youtube_url: str, output_path: str):
-        """Download YouTube video with enhanced authentication handling"""
+        """Download YouTube video"""
         def download():
-            # Try multiple strategies for downloading
-            strategies = [
-                # Strategy 1: With cookies and android client
-                {
-                    'cookiefile': 'cookies.txt' if Path("cookies.txt").exists() else None,
-                    'extractor_args': {
-                        'youtube': {
-                            'player_client': ['android', 'web'],
-                            'player_skip': ['webpage', 'configs']
-                        }
-                    },
-                    'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]'
-                },
-                # Strategy 2: With cookies and mweb client
-                {
-                    'cookiefile': 'cookies.txt' if Path("cookies.txt").exists() else None,
-                    'extractor_args': {
-                        'youtube': {
-                            'player_client': ['mweb', 'web']
-                        }
-                    },
-                    'format': 'best[height<=720]'
-                },
-                # Strategy 3: Without cookies, public access
-                {
-                    'extractor_args': {
-                        'youtube': {
-                            'player_client': ['web']
-                        }
-                    },
-                    'format': 'best[height<=720]'
-                }
-            ]
-            
-            for i, strategy in enumerate(strategies, 1):
-                try:
-                    print(f"Trying download strategy {i}...", flush=True)
-                    
-                    ydl_opts = {
-                        'outtmpl': output_path,
-                        'merge_output_format': 'mp4',
-                        'sleep_interval': 2,
-                        'max_sleep_interval': 5,
-                        'retries': 2,
-                        'fragment_retries': 2,
-                        'ignoreerrors': False,
-                        'no_warnings': False,
-                        'quiet': False,
-                        'verbose': True
-                    }
-                    
-                    # Apply strategy
-                    if strategy.get('cookiefile'):
-                        ydl_opts['cookiefile'] = strategy['cookiefile']
-                        print(f"Using cookies: {strategy['cookiefile']}", flush=True)
-                    
-                    ydl_opts['extractor_args'] = strategy['extractor_args']
-                    ydl_opts['format'] = strategy['format']
-                    
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                        ydl.download([youtube_url])
-                    
-                    print(f"Download successful with strategy {i}!", flush=True)
-                    return  # Success, exit
-                    
-                except Exception as e:
-                    print(f"Strategy {i} failed: {str(e)}", flush=True)
-                    if i < len(strategies):
-                        print("Trying next strategy...", flush=True)
-                    else:
-                        print("All strategies failed!", flush=True)
-                        raise e
+            ydl_opts = {
+                'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',  # Limit to 720p for faster processing
+                'outtmpl': output_path,
+                'merge_output_format': 'mp4'
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([youtube_url])
         
         # Run download in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, download)
     
-    async def _transcribe_video(self, youtube_url: str) -> List[Tuple[str, float, float]]:
-        """Get transcript using YouTube Transcript API"""
-        def get_transcript():
+    async def _transcribe_video(self, video_path: str) -> List[Tuple[str, float, float]]:
+        """Transcribe video using Whisper"""
+        def transcribe():
             start_time = time.time()
-            print("Getting YouTube transcript...", flush=True)
-            
-            # Extract video ID from URL
-            video_id = self._extract_video_id(youtube_url)
-            if not video_id:
-                raise ValueError("Could not extract video ID from URL")
-            
             try:
-                # Get transcript with timeout and error handling
-                api = YouTubeTranscriptApi()
-                transcript_list = api.fetch(video_id, languages=['en'])
-                print("YouTube transcript retrieved successfully.", flush=True)
-                
-                # Convert to our format
-                transcript = []
-                for segment in transcript_list:
-                    text = segment.text
-                    start_time_sec = segment.start
-                    end_time_sec = segment.start + segment.duration
-                    transcript.append((text, start_time_sec, end_time_sec))
-                
-                end_time = time.time()
-                print(f"Transcript retrieval took {end_time - start_time:.2f} seconds")
-                print(f"Found {len(transcript)} transcript segments", flush=True)
-                return transcript
-                
+                print("Starting Whisper transcription...", flush=True)
+                model = whisper.load_model("base")
+                print("Model loaded.", flush=True)
+                result = model.transcribe(video_path, language="en")
+                print("Whisper transcription complete.", flush=True)
+                ...
             except Exception as e:
-                print(f"Error getting transcript: {str(e)}", flush=True)
-                # Return empty transcript if API fails
-                return []
+                print(f"Transcription failed: {e}", flush=True)
+                raise
+            
+            transcript = []
+            for segment in result['segments']:
+                transcript.append((segment['text'], segment['start'], segment['end']))
+            
+            end_time = time.time()
+            print("transcription took" + str(end_time - start_time) + "seconds")
+            print(transcript)
+            return transcript
         
-        # Run transcript retrieval in thread pool with timeout
+        # Run transcription in thread pool
         loop = asyncio.get_event_loop()
-        try:
-            return await asyncio.wait_for(
-                loop.run_in_executor(None, get_transcript),
-                timeout=30.0  # 30 second timeout
-            )
-        except asyncio.TimeoutError:
-            print("Transcript retrieval timed out, returning empty transcript", flush=True)
-            return []
-    
-    def _extract_video_id(self, youtube_url: str) -> Optional[str]:
-        """Extract video ID from YouTube URL"""
-        patterns = [
-            r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})',
-            r'youtube\.com\/embed\/([a-zA-Z0-9_-]{11})',
-            r'youtube\.com\/v\/([a-zA-Z0-9_-]{11})'
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, youtube_url)
-            if match:
-                return match.group(1)
-        return None
-    
-    async def _check_video_accessibility(self, youtube_url: str) -> Dict[str, Any]:
-        """Check if a video is accessible and get basic info"""
-        def check_access():
-            try:
-                ydl_opts = {
-                    'quiet': True,
-                    'no_warnings': True,
-                    'extract_flat': True
-                }
-                
-                # Try with cookies first
-                if Path("cookies.txt").exists():
-                    ydl_opts['cookiefile'] = 'cookies.txt'
-                
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(youtube_url, download=False)
-                    return {
-                        'accessible': True,
-                        'title': info.get('title', 'Unknown'),
-                        'duration': info.get('duration', 0),
-                        'age_restricted': info.get('age_limit', 0) > 0,
-                        'private': info.get('availability', 'public') != 'public'
-                    }
-            except Exception as e:
-                return {
-                    'accessible': False,
-                    'error': str(e),
-                    'age_restricted': 'bot' in str(e).lower() or 'login' in str(e).lower(),
-                    'private': 'private' in str(e).lower()
-                }
-        
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, check_access)
-    
-
+        return await loop.run_in_executor(None, transcribe)
     
     async def _identify_clips(self, transcript: List[Tuple[str, float, float]], instructions: str) -> List[Dict[str, float]]:
         """Use GPT to identify relevant clips"""
         def process_with_gpt():
             user_prompt = instructions if instructions else "Find the most engaging and important moments in this video"
+            
+            print(f"GPT Analysis - User Instructions: '{user_prompt}'", flush=True)
+            print(f"GPT Analysis - Transcript segments: {len(transcript)}", flush=True)
             
             prompt = f"""
             Here is the transcript of the video: {transcript}
@@ -277,9 +133,10 @@ class VideoProcessor:
             Return only the timestamps in this exact format: [{{'start': 12.4, 'end': 54.6}}, ...]
             """
             
+            print("Starting GPT API call...", flush=True)
             client = OpenAI(api_key=self.openai_key)
             completion = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",
                 messages=[
                     {
                         "role": "system",
@@ -310,7 +167,12 @@ Do not include any explanation or commentary—just the list of relevant timesta
             if not match:
                 raise ValueError("No valid timestamp list found in GPT response")
             
-            return ast.literal_eval(match.group(0))
+            timestamps = ast.literal_eval(match.group(0))
+            print(f"GPT Analysis - Extracted {len(timestamps)} timestamp ranges:", flush=True)
+            for i, ts in enumerate(timestamps):
+                print(f"  Clip {i+1}: {ts['start']:.1f}s - {ts['end']:.1f}s (duration: {ts['end'] - ts['start']:.1f}s)", flush=True)
+            
+            return timestamps
         
         # Run GPT processing in thread pool
         loop = asyncio.get_event_loop()
@@ -319,6 +181,7 @@ Do not include any explanation or commentary—just the list of relevant timesta
     async def _render_video(self, video_path: str, timestamps: List[Dict[str, float]]) -> List[Dict[str, Any]]:
         """Render the final video with identified clips using ffmpeg for fast stitching"""
         def render():
+            print(f"Starting video rendering for {len(timestamps)} clips...", flush=True)
             clips_info = []
             temp_clips = []
             concat_list_path = self.temp_dir / "concat_list.txt"

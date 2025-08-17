@@ -27,7 +27,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md glass-effect border-0 shadow-2xl">
+      <DialogContent className="sm:max-w-md bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl border border-white/10 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center glow-text bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent">
             Welcome to ClipWave
@@ -44,18 +44,18 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
                   brand: '#3b82f6',
                   brandAccent: '#8b5cf6',
                   brandButtonText: '#ffffff',
-                  defaultButtonBackground: '#1e293b',
-                  defaultButtonBackgroundHover: '#334155',
-                  defaultButtonBorder: '#475569',
+                  defaultButtonBackground: 'transparent',
+                  defaultButtonBackgroundHover: 'rgba(59, 130, 246, 0.1)',
+                  defaultButtonBorder: 'rgba(59, 130, 246, 0.3)',
                   defaultButtonText: '#ffffff',
-                  dividerBackground: '#475569',
-                  inputBackground: '#1e293b',
-                  inputBorder: '#475569',
-                  inputBorderHover: '#3b82f6',
-                  inputBorderFocus: '#8b5cf6',
+                  dividerBackground: 'rgba(255, 255, 255, 0.1)',
+                  inputBackground: 'transparent',
+                  inputBorder: 'rgba(255, 255, 255, 0.2)',
+                  inputBorderHover: 'rgba(59, 130, 246, 0.5)',
+                  inputBorderFocus: 'rgba(139, 92, 246, 0.8)',
                   inputText: '#ffffff',
-                  inputLabelText: '#94a3b8',
-                  inputPlaceholder: '#64748b',
+                  inputLabelText: '#ffffff',
+                  inputPlaceholder: 'rgba(255, 255, 255, 0.6)',
                   messageText: '#ffffff',
                   messageTextDanger: '#ef4444',
                   anchorTextColor: '#3b82f6',
@@ -91,9 +91,9 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
             className: {
               anchor: 'text-neon-blue hover:text-neon-purple transition-colors',
               button: 'bg-gradient-to-r from-neon-blue to-neon-purple hover:from-neon-purple hover:to-neon-pink text-white font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-neon-blue/25',
-              container: 'glass-effect',
-              divider: 'bg-dark-card',
-              input: 'bg-dark-card/50 border-neon-blue/30 focus:border-neon-blue text-white placeholder:text-muted-foreground',
+              container: '!bg-transparent !border-0 !shadow-none',
+              divider: 'bg-white/10',
+              input: '!bg-transparent !border-white/20 focus:!border-neon-blue/50 text-white placeholder:text-white/60 backdrop-blur-sm',
               label: 'text-white font-medium',
               loader: 'text-neon-blue',
               message: 'text-white',

@@ -30,21 +30,6 @@ dist-ssr
 .env.test.local
 .env.production.local
 
-# Video files
-*.mp4
-*.webm
-*.avi
-*.mov
-*.mkv
-*.flv
-*.wmv
-*.part
-*.temp
-
-# Storage directories
-storage/videos/
-backend/storage/videos/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -56,3 +41,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Storage files
+backend/storage/videos/
+backend/storage/jobs.json
+storage/videos/

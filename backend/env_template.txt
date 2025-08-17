@@ -1,6 +1,0 @@
-
-OPENAI_API_KEY=sk-your-openai-api-key-here
-
-# YouTube Data API v3 Key (for video metadata and better reliability)
-YOUTUBE_API_KEY=AIzaSyAL2QCml7DyQYrdzJ7eIB3N9j2z_hMILgQ
-

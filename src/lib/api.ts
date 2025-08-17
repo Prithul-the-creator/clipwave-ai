@@ -1,5 +1,4 @@
-// In production, use relative URLs since frontend and backend are on the same domain
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:8000');
+const API_BASE_URL = 'http://localhost:8000';
 
 export interface VideoRequest {
   youtube_url: string;
@@ -113,17 +112,7 @@ class ApiClient {
   }
 
   getWebSocketUrl(jobId: string): string {
-    // In production, use relative WebSocket URL since frontend and backend are on the same domain
-    if (import.meta.env.PROD) {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      return `${protocol}//${window.location.host}/ws/${jobId}`;
-    }
-    
-    // In development, use localhost
-    const wsUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    const wsProtocol = wsUrl.startsWith('https') ? 'wss' : 'ws';
-    const wsHost = wsUrl.replace(/^https?:\/\//, '');
-    return `${wsProtocol}://${wsHost}/ws/${jobId}`;
+    return `ws://localhost:8000/ws/${jobId}`;
   }
 }
 

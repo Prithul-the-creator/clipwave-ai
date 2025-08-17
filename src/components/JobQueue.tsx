@@ -49,13 +49,8 @@ export const JobQueue = ({ jobs, currentJob, onJobSelect, onJobDelete, loading =
   };
 
   const getJobThumbnail = (job: Job) => {
-    // Generate thumbnail URL from YouTube video ID
-    const url = job.youtube_url;
-    const videoIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    if (videoIdMatch) {
-      return `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
-    }
-    return 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=300&h=200&fit=crop&crop=center';
+    // Use the youtube.png image for all jobs
+    return '/youtube.png';
   };
 
   return (
