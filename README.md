@@ -4,16 +4,26 @@
 
 A full-stack application that automatically clips YouTube videos based on AI-powered content analysis. Users can submit YouTube URLs with custom instructions, and the system will generate engaging clips using GPT-4 and Whisper AI.
 
+## How It Works
+
+1. **Submit a YouTube URL**: Enter a YouTube video URL and optional instructions
+2. **Video Download**: The system downloads the video (limited to 720p for faster processing)
+3. **AI Transcription**: Whisper AI transcribes the video content
+4. **Content Analysis**: GPT-4 analyzes the transcript and identifies engaging moments
+5. **Video Clipping**: MoviePy creates clips based on the identified timestamps
+6. **Real-time Updates**: Progress is tracked and displayed in real-time
+7. **Download**: Users can preview and download the generated clips
+
 ## Features
 
-- 🎥 **YouTube Video Processing**: Download and process any YouTube video
-- 🤖 **AI-Powered Clipping**: Use GPT-4 to identify the most engaging moments
-- 📝 **Custom Instructions**: Specify what type of content to focus on
-- 🔄 **Real-time Progress**: Live updates via WebSocket connections
-- 📋 **Job Queue System**: Handle multiple processing requests
-- 🎬 **Video Preview**: Watch generated clips directly in the browser
-- 💾 **Download Support**: Download processed videos in MP4 format
-- 🎨 **Modern UI**: Beautiful, responsive interface with dark theme
+-  **YouTube Video Processing**: Download and process any YouTube video
+-  **AI-Powered Clipping**: Use GPT-4 to identify the most engaging moments
+-  **Custom Instructions**: Specify what type of content to focus on
+-  **Real-time Progress**: Live updates via WebSocket connections
+-  **Job Queue System**: Handle multiple processing requests
+-  **Video Preview**: Watch generated clips directly in the browser
+-  **Download Support**: Download processed videos in MP4 format
+-  **Modern UI**: Beautiful, responsive interface with dark theme
 
 ## Tech Stack
 
@@ -80,16 +90,6 @@ Run both backend and frontend with a single command:
 ```bash
 ./start.sh
 ```
-
-## How It Works
-
-1. **Submit a YouTube URL**: Enter a YouTube video URL and optional instructions
-2. **Video Download**: The system downloads the video (limited to 720p for faster processing)
-3. **AI Transcription**: Whisper AI transcribes the video content
-4. **Content Analysis**: GPT-4 analyzes the transcript and identifies engaging moments
-5. **Video Clipping**: MoviePy creates clips based on the identified timestamps
-6. **Real-time Updates**: Progress is tracked and displayed in real-time
-7. **Download**: Users can preview and download the generated clips
 
 ## API Endpoints
 
