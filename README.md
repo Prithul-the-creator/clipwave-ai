@@ -1,6 +1,6 @@
 # ClipWave AI - YouTube Video Clipping Platform
 
-![Demo](zxcv.mp4)
+![Demo](ezgif-36609b42afe931.gif)
 
 A full-stack application that automatically clips YouTube videos based on AI-powered content analysis. Users can submit YouTube URLs with custom instructions, and the system will generate engaging clips using GPT-4 and Whisper AI.
 
