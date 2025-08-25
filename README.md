@@ -33,13 +33,6 @@ A full-stack application that automatically clips YouTube videos based on AI-pow
 - **Shadcn/ui**: Beautiful component library
 - **React Query**: Server state management
 
-## Prerequisites
-
-- Python 3.8+
-- Node.js 18+
-- npm or yarn
-- OpenAI API key
-
 ## Installation
 
 1. **Clone the repository**
@@ -106,16 +99,3 @@ Run both backend and frontend with a single command:
 - `DELETE /api/jobs/{job_id}` - Delete a job
 - `GET /api/videos/{job_id}` - Download processed video
 - `WS /ws/{job_id}` - WebSocket for real-time updates
-
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
