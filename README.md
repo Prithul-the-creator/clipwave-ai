@@ -14,7 +14,6 @@ A full-stack application that automatically clips YouTube videos based on AI-pow
 6. **Real-time Updates**: Progress is tracked and displayed in real-time
 7. **Download**: Users can preview and download the generated clips
 
-
 ## Features
 
 -  **YouTube Video Processing**: Download and process any YouTube video
