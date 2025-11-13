@@ -26,6 +26,7 @@ A full-stack application that automatically clips YouTube videos based on AI-pow
 -  **Download Support**: Download processed videos in MP4 format
 -  **Modern UI**: Beautiful, responsive interface with dark theme
 
+
 ## Tech Stack
 
 ### Backend
